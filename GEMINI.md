@@ -1,411 +1,416 @@
-# GEMINI.md — MLBB Store Project Brief
+# GEMINI.md — Artisan.gg Project Brief
 
-## 🎯 Project Overview
-A clean, fast, mobile-first e-commerce web platform exclusively for
-Mobile Legends: Bang Bang (MLBB). Users can purchase Diamond Top-Ups
-and pre-built MLBB Accounts. No other games. No blog. No unnecessary
-pages. The goal is a simple, trustworthy, conversion-optimized store, the name decided is "Artisan".
+## Project Overview
+Artisan.gg is a dark-themed mobile-first e-commerce platform
+for gaming top-ups and accounts. Currently launching with
+Mobile Legends Bang Bang only. More games will be added later
+via the admin panel without restructuring the codebase.
 
----
+Brand name: Artisan.gg
+Tagline: "Top Up. Play Better."
 
-## 🌍 Target Audience
-- **Primary:** Indian users (payments in INR ₹, Razorpay UPI priority)
-- **Secondary:** Southeast Asia, Middle East, Europe, US
-- **Currency:** Show INR by default, auto-detect and switch for foreign
-  users (USD, EUR, MYR, PHP, AED etc.) via IP geolocation
-- **Language:** English only for now
-- **Device:** Mobile-first (majority of MLBB players are on mobile)
+Current games: Mobile Legends Bang Bang (MLBB) only.
+Future games: added via admin panel, no code changes needed.
 
 ---
 
-## 🛍️ Products Offered
-
-### 1. Diamond Top-Ups
-- User provides MLBB UID + Server
-- Site verifies and displays in-game username before purchase
-- Packages: 86, 172, 257, 344, 429, 514, 600, 706, 792, 878, 963,
-  1049, 1135, 1220, 1306, 1412, 2195, 3688, 5532, 7376, 9220, 11144
-  diamonds (standard MLBB denomination ladder)
-- Pricing in INR with foreign currency auto-conversion
-- Delivery: instant or within 5 minutes
-- Each package card shows: 💎 amount, original price, discounted
-  price, savings amount, estimated delivery time
-
-### 2. Pre-built Account Shop
-- Accounts listed with: Rank, Hero Count, Skin Count, Server,
-  Price, Screenshots
-- Filter by: Rank (Epic/Legend/Mythic/Mythical Glory/Glorious
-  Mythic), Price Range, Server, Hero Count, Skin Count
-- After purchase: credentials shown once in dashboard (email +
-  password), also emailed to buyer
-- Account detail page: full hero list, skin gallery, rank history,
-  server, price, buy button
+## Target Audience
+- Primary: Indian users (INR default, Razorpay UPI priority)
+- Secondary: Global users (USD, EUR, MYR, PHP, AED auto-detect)
+- Currency: INR by default, auto-switch via IP geolocation
+- Language: English only
+- Device: Mobile-first (majority of players are on mobile)
 
 ---
 
-## 🧭 Pages & Routes
+## Products
 
-| Route              | Page                          |
-|--------------------|-------------------------------|
-| /                  | Landing Page                  |
-| /topup             | Diamond Top-Up Page           |
-| /accounts          | Account Shop                  |
-| /accounts/[id]     | Account Detail Page           |
-| /login             | Login                         |
-| /register          | Register                      |
-| /forgot-password   | Forgot Password               |
-| /dashboard         | User Dashboard                |
-| /dashboard/orders  | Order History                 |
-| /dashboard/wallet  | Wallet & Transactions         |
-| /dashboard/profile | Profile Settings              |
-| /wallet/add        | Add Funds Page                |
-| /admin             | Admin Panel (protected)       |
-| /admin/orders      | Order Management              |
-| /admin/accounts    | Account Inventory             |
-| /admin/users       | User Management               |
-| /admin/payments    | Payment Approval Queue        |
-| /terms             | Terms of Service              |
-| /privacy           | Privacy Policy                |
-| /contact           | Contact / Support             |
+### 1. Diamond Top-Ups (per game)
+- Customer selects a game (currently only MLBB shown)
+- Customer enters Player ID and Zone ID (game-specific fields)
+- Site verifies player via game supplier API before checkout
+- Packages are managed per game via admin panel
+- Delivery is fully automatic via supplier API after payment
+- Delivery target: under 5 minutes
+
+### 2. Pre-built Account Shop (per game)
+- Accounts listed with rank, hero count, skin count,
+  server, price, screenshots
+- Filter by game, rank, price, server, hero count, skin count
+- After purchase credentials shown once in dashboard
+  and emailed to buyer
+- Admin manages all account listings via admin panel
 
 ---
 
-## 🎨 Design System
+## Routes
 
-### Theme
-- **Mode:** Dark (primary), optional light mode toggle later
-- **Background:** Deep navy #0a0f1e or near-black #0d0d0d
-- **Primary Accent:** MLBB Gold #f4c430 / Yellow #ffd700
-- **Secondary Accent:** Electric blue #00c3ff for highlights
-- **Success:** #22c55e | **Error:** #ef4444 | **Warning:** #f59e0b
-- **Cards:** Slightly lighter than background #131929, subtle border
+| Route                          | Page                          |
+|--------------------------------|-------------------------------|
+| /                              | Landing Page                  |
+| /games                         | All Games (future use)        |
+| /games/[game-slug]             | Game Page (top-up + accounts) |
+| /games/[game-slug]/topup       | Top-Up Page for that game     |
+| /games/[game-slug]/accounts    | Account Shop for that game    |
+| /games/[game-slug]/accounts/[id] | Account Detail Page         |
+| /login                         | Login                         |
+| /register                      | Register                      |
+| /forgot-password               | Forgot Password               |
+| /dashboard                     | User Dashboard (wallet tab)   |
+| /dashboard/orders              | Order History                 |
+| /dashboard/wallet              | Wallet and Transactions       |
+| /dashboard/profile             | Profile Settings              |
+| /dashboard/accounts            | My Purchased Accounts         |
+| /wallet/add                    | Add Funds Page                |
+| /admin                         | Admin Dashboard               |
+| /admin/games                   | Game Manager                  |
+| /admin/games/[game-slug]       | Game Settings                 |
+| /admin/packages                | Diamond Package Manager       |
+| /admin/accounts                | Account Inventory             |
+| /admin/orders                  | Order Management              |
+| /admin/users                   | User Management               |
+| /admin/payments                | Payment Approval Queue        |
+| /admin/coupons                 | Coupon Manager                |
+| /terms                         | Terms of Service              |
+| /privacy                       | Privacy Policy                |
+| /contact                       | Contact and Support           |
+
+For now /games redirects to /games/mobile-legends and
+/games/mobile-legends is the only active game slug.
+The landing page links directly to MLBB top-up and accounts.
+
+---
+
+## Design System
+
+### Colors
+- Background: #0a0f1e
+- Card background: #131929
+- Primary accent: #ffd700 (gold)
+- Secondary accent: #00c3ff (electric blue)
+- Success: #22c55e
+- Error: #ef4444
+- Warning: #f59e0b
+- Border: rgba(255,215,0,0.1)
+- Glow: rgba(255,215,0,0.3)
 
 ### Typography
-- **Headings:** Rajdhani or Orbitron (bold, gaming feel)
-- **Body:** Inter or DM Sans (clean, readable)
-- **Font sizes:** Follow Tailwind scale (text-sm to text-5xl)
+- Headings: Orbitron or Rajdhani (bold, gaming)
+- Body: Inter (clean, readable)
+- All prices: bold white or gold, never gray
 
 ### UI Rules
-- Card-based layout with soft glow on hover
-- CTA buttons: gold background, dark text, bold, rounded-lg
-- Trust badges and icons throughout (shield, lightning bolt, clock)
-- Smooth transitions (300ms ease)
-- Skeleton loaders for async content
-- Toast notifications for actions (success/error/info)
-- No stock photos — use official MLBB artwork (verify licensing)
-- Flags + currency codes for international display
-- Rupee symbol ₹ default, swap to $ € etc by region
+- All CTA buttons: gold background, black bold text, rounded-lg
+- Cards: #131929 background, gold border at low opacity
+- Hover: gold glow box-shadow, subtle translateY(-4px)
+- Every async action needs a loading skeleton
+- Every error needs a friendly message and retry option
+- No excessive animations, framer-motion for entrances only
+- Mobile bottom nav always visible on small screens
+- Show savings in rupee amount not percentage
 
-### Mobile First
+### Mobile
+- Design for 375px first then scale up
 - Hamburger nav on mobile
-- Bottom tab bar on mobile for: Home, Top Up, Accounts, Wallet,
-  Profile
-- Touch-friendly tap targets (min 44px)
-- Swipeable package cards on mobile
+- Bottom tab bar: Home, Top Up, Accounts, Wallet, Profile
+- Touch targets minimum 44px
+- Horizontal scroll with snap for package cards
 
 ---
 
-## 🔐 Auth System
-
-- Email + Password registration
-- OTP email verification on signup (via Resend or Nodemailer)
-- Google OAuth login (optional but recommended)
-- JWT access tokens (15 min expiry) + refresh tokens (7 days)
-- Tokens stored in httpOnly cookies (not localStorage)
-- Rate limiting on login: max 5 attempts then 15 min lockout
-- Admin role separate from user role (role field in DB)
-- Password reset via email link (expires in 1 hour)
-- Email verification required before first purchase
+## Auth System
+- Email and password registration
+- OTP email verification on signup via Resend
+- JWT access tokens (15 min) in httpOnly cookies
+- Refresh tokens (7 days) in httpOnly cookies
+- Rate limiting: 5 attempts then 15 min lockout
+- Password reset via email link (expires 1 hour)
+- Admin role separate from user role
+- Email must be verified before first purchase
 
 ---
 
-## 💳 Payment System
+## Payment System
 
-### Direct Checkout (Pay Per Order)
-Users can pay directly per order without pre-loading wallet:
+### Provider
+Razorpay handles everything.
+UPI, Credit Card, Debit Card, Net Banking, PayPal, Wallets.
+No other payment gateway. No crypto. No Stripe.
 
-| Method         | Provider       | Region            | Notes                          |
-|----------------|----------------|-------------------|--------------------------------|
-| UPI / Cards    | Razorpay       | India (Primary)   | UPI, NetBanking, RuPay, Cards  |
-| Int'l Cards    | Stripe         | Global            | Visa, Mastercard, Amex         |
-| Crypto         | NowPayments    | Global            | USDT, BTC, ETH, 100+ coins     |
-| PayPal         | PayPal SDK     | Global            | International fallback         |
-| Manual UPI     | Admin-verified | India             | User submits UTR number        |
-| Manual Crypto  | Admin-verified | Global            | User sends to wallet address   |
+### Methods Available
+- UPI (GPay, PhonePe, Paytm etc)
+- Credit and Debit Cards (Visa, Mastercard, RuPay)
+- Net Banking
+- PayPal via Razorpay international
+- Razorpay Wallet
 
-### Wallet System (Pre-load Balance)
-- User tops up wallet using any payment method above
-- Balance stored in account, spend on any purchase
-- Minimum top-up: ₹50 / $1 equivalent
-- Preset amounts: ₹100, ₹250, ₹500, ₹1000, ₹2000 (INR)
-  or $2, $5, $10, $25, $50 (USD) based on detected region
-- Custom amount input allowed
+### Two Ways to Pay
 
-### Wallet Incentives (Keep Subtle)
-- ✅ 5% instant discount on all orders paid via wallet
-- ✅ 2% cashback credited to wallet on orders above ₹500 / $6
-- ✅ Bonus diamonds on select packages during events
-  (e.g. "Buy 1049💎 get 50💎 free — wallet pay only")
-- ✅ One-click checkout — no payment redirect
+Option A — Artisan Wallet (Recommended):
+Customer tops up their Artisan.gg wallet using Razorpay
+then spends balance on any order with one click.
+No redirect on checkout. Instant purchase.
 
-### Discount Rules
-- Show savings in currency amount not percentage
-  ("You save ₹18" not "5% off") — feels more real
-- Wallet % discount and cashback can apply together
+Option B — Direct Checkout:
+Customer pays per order via Razorpay checkout redirect.
+No wallet required.
+
+### Wallet Incentives
+- 5% instant discount on all orders paid via wallet
+- 2% cashback on wallet orders above 500 INR
+- Show savings as "You save X" not as percentage
 - Wallet discount cannot stack with coupon codes
-  (best deal wins, show which is applied)
-- Cashback credited within 10 minutes post-order
-- Admin can create limited-time coupon codes
-- Referral codes: 2-3% one-time discount for new user's first topup
+- Best deal wins when both apply
+- Cashback credited within 10 minutes of order completion
 
-### Checkout Flows
+### Preset Wallet Top-Up Amounts
+INR: 100, 250, 500, 1000, 2000 plus custom input
+USD equivalent shown for foreign users
 
-**Wallet Pay (Recommended):**
-Select Package → Confirm UID → One-Click Buy →
-Deducted from wallet → Processing → Done ✅
-
-**Direct Pay:**
-Select Package → Confirm UID → Choose Payment →
-Redirect to Razorpay / Stripe / NowPayments →
-Webhook confirms → Order fulfilled → Done ✅
-
-### Webhooks Required
-- Razorpay: payment.captured event
-- Stripe: checkout.session.completed event
-- NowPayments: payment_status webhook (confirmed/finished)
-- PayPal: PAYMENT.CAPTURE.COMPLETED event
-- All webhooks must: verify signature → update order → credit
-  wallet if applicable → trigger delivery → send email receipt
+### Razorpay Webhook
+Event: payment.captured
+Verify signature before processing anything
+On success: update order, trigger supplier delivery,
+credit wallet if applicable, send email receipt
 
 ---
 
-## 🧾 Order System
+## Supplier Integration
 
-### Diamond Top-Up Order States
-```
-PENDING → PROCESSING → COMPLETED
-                    ↘ FAILED → REFUNDED (wallet credit)
-```
+### Current Supplier: Smile.one (MLBB only for now)
+Smile.one handles all MLBB diamond delivery automatically.
+Future games will use their own supplier, added via admin.
 
-### Account Order States
-```
-PENDING → PAID → CREDENTIALS_SENT → COMPLETED
-             ↘ FAILED → REFUNDED
-```
+### Step 1 — Verify Player
+POST https://www.smile.one/merchant/mobilelegends/checkrole
+Form data:
+  user_id: our smile.one merchant ID from env
+  zone_id: customer entered zone ID
+  pid: 25 (fixed for MLBB)
+  checkrole: 1
 
-### Post-Order Actions
-- Email receipt sent immediately
-- Dashboard order history updated in real time
-- For top-ups: delivery within 5 minutes (show countdown)
-- For accounts: credentials shown in dashboard + emailed
-- Failed orders: auto-refund to wallet within 10 minutes
-- Support ticket auto-created for failed orders
+Success: {"code":200,"username":"PlayerName",...}
+Show "Confirmed: [username]" in green below the inputs.
+If code is not 200 show "Invalid Player ID or Zone ID".
 
----
+### Step 2 — Place Order (after payment confirmed)
+Call smile.one order endpoint with:
+  user_id: customer MLBB player ID
+  zone_id: customer MLBB zone ID
+  pid: 25
+  product_id: smile.one product ID mapped to package
+  quantity: 1
 
-## 👤 User Dashboard
+### Supplier Config in Admin
+Each game in admin panel has:
+  supplier name
+  supplier API base URL
+  supplier API credentials
+  product ID mapping per package
 
-### Wallet Tab
-- Current balance (large, prominent)
-- Add Funds button → opens payment method selector
-- Transaction log: date, type (credit/debit), amount, method,
-  status, reference ID
-
-### Orders Tab
-- All orders (top-ups + accounts) in one list
-- Filter by: type, status, date range
-- Each row: order ID, product, amount, status badge, date,
-  action (view details / raise issue)
-
-### Profile Tab
-- Display name, email (verified badge), avatar upload
-- Change password
-- Linked payment methods (saved cards via Stripe/Razorpay)
-- Notification preferences (email on order complete, promotions)
-- Delete account option
-
-### My Accounts Tab (if they bought accounts)
-- List of purchased accounts
-- "Reveal Credentials" button (requires password confirmation)
-- Re-reveal allowed anytime (credentials stored encrypted)
+### Environment Variables
+SMILEONE_USER_ID=""
+SMILEONE_API_KEY=""
+SMILEONE_BASE_URL="https://www.smile.one/merchant/mobilelegends"
 
 ---
 
-## 🛠️ Admin Panel
+## Admin Panel
 
-### Dashboard
-- Live stats: today's revenue, total orders, pending approvals,
-  active users, wallet balances total, conversion rate
+### Game Manager (/admin/games)
+- Add a new game: name, slug, cover image, description,
+  is active toggle, supplier config, input fields config
+  (e.g. MLBB needs Player ID and Zone ID, other games
+  may need different fields)
+- Edit existing game settings
+- Toggle game visibility on storefront
+- Each game has its own packages and account listings
 
-### Order Management
-- View all orders with filters
-- Manually fulfill, mark complete, issue refund to wallet
-- Notes field per order for internal use
+### Diamond Package Manager (/admin/packages)
+- Filter packages by game
+- Add or edit packages per game
+- Fields: game, diamond amount, base price INR, display price,
+  is visible, bonus diamonds, bonus label,
+  supplier product ID, sort order
+- Toggle package visibility
 
-### Payment Approval Queue
-- UPI: user submits UTR → admin sees screenshot + UTR →
-  approve → wallet credited
-- Manual Crypto: user submits TX hash → admin verifies →
-  approve → wallet credited
+### Account Inventory (/admin/accounts)
+- Filter by game
+- Add new listing: game, rank, server, hero count, skin count,
+  price, screenshots, credential email, credential password
+- Edit or delete listings
+- Sold accounts auto-hidden from shop
 
-### Account Inventory
-- Add new accounts: rank, server, heroes, skins, price,
-  screenshots, credentials (stored encrypted)
-- Edit / remove listings
-- Mark as sold (auto-happens on purchase)
-- Stock count display
+### Order Management (/admin/orders)
+- View all orders with filters (game, type, status, date)
+- Full order details
+- Manually mark complete or failed
+- Issue refund to customer wallet
+- Internal notes per order
 
-### Diamond Package Manager
-- Edit pricing per package
-- Toggle package visibility (show/hide)
-- Add bonus diamond labels to packages
-- Set regional pricing overrides
+### Payment Approval Queue (/admin/payments)
+- Pending manual UPI submissions
+- Customer submits UTR number
+- Admin approves or rejects
+- On approval wallet is credited automatically
 
-### User Management
-- Search users by email / ID
-- View wallet balance, order history
-- Manual wallet credit / debit with reason note
-- Ban / unban accounts
-- Reset user password (sends email link)
+### User Management (/admin/users)
+- Search by email or ID
+- View wallet balance and order history
+- Manual wallet credit or debit with reason note
+- Ban or unban account
 
-### Coupon Manager
-- Create coupon: code, discount %, max uses, expiry date,
-  min order value, applicable products
-- View usage stats per coupon
+### Coupon Manager (/admin/coupons)
+- Create: code, discount percent, max uses,
+  expiry date, min order value, applicable game or all
+- View usage stats
+- Deactivate coupons
+
+### Admin Dashboard (/admin)
+- Today revenue
+- Total orders
+- Pending approvals
+- Active users
+- Recent orders feed
 
 ---
 
-## 🗄️ Database Schema (PostgreSQL)
+## Database Schema
 
 ### Users
-```
-id, email, password_hash, name, role (user/admin),
-email_verified, google_id, avatar_url,
-wallet_balance, currency_preference,
-created_at, updated_at, is_banned
-```
+id, email, passwordHash, name, role (USER/ADMIN),
+emailVerified, avatarUrl, walletBalance,
+currencyPreference, isBanned, createdAt, updatedAt
+
+### Games
+id, name, slug, description, coverImage, isActive,
+supplierName, supplierBaseUrl, supplierConfig (json),
+inputFields (json), createdAt, updatedAt
 
 ### Orders
-```
-id, user_id, type (topup/account), product_id,
-quantity, unit_price, total_price, discount_applied,
-cashback_credited, payment_method, payment_status,
-order_status, mlbb_uid, mlbb_server, mlbb_username,
-coupon_code, notes, created_at, completed_at
-```
+id, userId, gameId, type (TOPUP/ACCOUNT), productId,
+quantity, unitPrice, totalPrice, discountApplied,
+cashbackCredited, paymentMethod, paymentStatus,
+orderStatus, playerInputs (json), mlbbUsername,
+couponCode, supplierOrderId, notes,
+createdAt, completedAt
 
-### Wallet Transactions
-```
-id, user_id, type (credit/debit), amount, currency,
-method, reference_id, status, description, created_at
-```
+### WalletTransactions
+id, userId, type (CREDIT/DEBIT), amount, currency,
+method, referenceId, status, description, createdAt
 
-### Diamond Packages
-```
-id, diamond_amount, base_price_inr, display_price,
-is_visible, bonus_diamonds, bonus_label, created_at
-```
+### DiamondPackages
+id, gameId, diamondAmount, basePriceInr, displayPrice,
+isVisible, bonusDiamonds, bonusLabel,
+supplierProductId, sortOrder, createdAt
 
-### Accounts
-```
-id, rank, server, hero_count, skin_count,
-price_inr, screenshots (array), credential_email,
-credential_password (encrypted), is_sold,
-sold_to_user_id, created_at
-```
+### AccountListings
+id, gameId, rank, server, heroCount, skinCount,
+priceInr, screenshots (array), credentialEmail,
+credentialPassword (AES-256 encrypted),
+isSold, soldToUserId, createdAt
 
 ### Coupons
-```
-id, code, discount_percent, max_uses, used_count,
-min_order_value, expiry_date, applicable_to,
-created_by, is_active, created_at
-```
+id, code, discountPercent, maxUses, usedCount,
+minOrderValue, expiryDate, applicableGameId (null = all),
+isActive, createdAt
 
-### Support Tickets
-```
-id, user_id, order_id, subject, status,
-messages (json array), created_at, resolved_at
-```
+### SupportTickets
+id, userId, orderId, subject, status,
+messages (json), createdAt, resolvedAt
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
-| Layer         | Choice                                      |
-|---------------|---------------------------------------------|
-| Framework     | Next.js 14 (App Router)                     |
-| Styling       | Tailwind CSS + shadcn/ui                    |
-| Database      | PostgreSQL via Supabase                     |
-| ORM           | Prisma                                      |
-| Auth          | NextAuth.js v5 + custom JWT                 |
-| Email         | Resend (transactional emails)               |
-| Payments      | Razorpay + Stripe + NowPayments + PayPal    |
-| Currency API  | exchangerate-api.com or frankfurter.app     |
-| Geolocation   | ip-api.com (free tier) for region detect    |
-| File Upload   | Supabase Storage (account screenshots)      |
-| Encryption    | bcrypt (passwords) + AES-256 (credentials) |
-| Hosting       | Vercel (frontend + API) + Supabase (DB)     |
-| Analytics     | Vercel Analytics or Plausible               |
+| Layer        | Choice                                    |
+|--------------|-------------------------------------------|
+| Framework    | Next.js 14 App Router                     |
+| Styling      | Tailwind CSS + shadcn/ui                  |
+| Database     | PostgreSQL via Supabase                   |
+| ORM          | Prisma                                    |
+| Auth         | NextAuth.js v5 + JWT                      |
+| Email        | Resend                                    |
+| Payments     | Razorpay only                             |
+| Delivery     | Smile.one API (MLBB), extensible          |
+| Currency     | exchangerate-api.com                      |
+| Geolocation  | ip-api.com                                |
+| Storage      | Supabase Storage (screenshots)            |
+| Encryption   | bcrypt (passwords) AES-256 (credentials)  |
+| Hosting      | Vercel + Supabase                         |
 
 ---
 
-## 🚀 Build Phases
+## Environment Variables
 
-### Phase 1 — MVP (Build First)
-- [ ] Next.js project scaffold + Tailwind + folder structure
-- [ ] Landing page with hero, trust badges, product CTAs
-- [ ] Auth: register, login, email OTP, JWT
-- [ ] Diamond top-up page (UID input + package grid)
-- [ ] Wallet system (add funds via Manual UPI only)
-- [ ] Razorpay direct checkout integration
-- [ ] Basic user dashboard (wallet + orders)
-- [ ] Order creation + status flow
-- [ ] Admin panel basics (order view + UPI approval)
-- [ ] Email receipts via Resend
+DATABASE_URL=""
+NEXTAUTH_SECRET=""
+NEXTAUTH_URL="http://localhost:3000"
+RESEND_API_KEY=""
+EMAIL_FROM="noreply@artisan.gg"
+RAZORPAY_KEY_ID=""
+RAZORPAY_KEY_SECRET=""
+RAZORPAY_WEBHOOK_SECRET=""
+NEXT_PUBLIC_RAZORPAY_KEY_ID=""
+SMILEONE_USER_ID=""
+SMILEONE_API_KEY=""
+SMILEONE_BASE_URL="https://www.smile.one/merchant/mobilelegends"
+ENCRYPTION_KEY=""
+CURRENCY_API_KEY=""
+
+---
+
+## Build Phases
+
+### Phase 1 — MVP
+- Project scaffold and folder structure
+- Prisma schema with Games table for extensibility
+- Landing page UI (MLBB featured, built to support more)
+- Auth pages UI
+- Top-up page UI at /games/mobile-legends/topup
+- Dashboard UI
+- Add funds page UI
+- Razorpay wallet top-up backend
+- Smile.one player verify API route
+- Order creation and status flow
+- Email receipts via Resend
+- Basic admin (orders, payment approval, package manager)
 
 ### Phase 2 — Full Launch
-- [ ] Account shop with filters + detail pages
-- [ ] Stripe + NowPayments + PayPal integration
-- [ ] Wallet discount (5%) + cashback (2%) logic
-- [ ] Coupon code system
-- [ ] Referral system
-- [ ] Currency auto-detection + conversion
-- [ ] Full admin panel (inventory, coupons, users)
-- [ ] Support ticket system
+- Account shop at /games/mobile-legends/accounts
+- Smile.one auto delivery after payment confirmed
+- Wallet discount and cashback logic
+- Coupon system
+- Full admin panel (games, packages, accounts, users, coupons)
+- Currency auto-detection and conversion
+- Credential delivery to dashboard
 
 ### Phase 3 — Growth
-- [ ] Google OAuth
-- [ ] Mobile bottom tab bar
-- [ ] Push notifications (order updates)
-- [ ] Loyalty points system
-- [ ] Seasonal discount events
-- [ ] Review / testimonial system
-- [ ] SEO optimization
+- Second game added via admin panel (no code changes)
+- Google OAuth
+- Referral system
+- Loyalty points
+- Seasonal events
+- SEO optimization
+- Push notifications
 
 ---
 
-## 📌 Strict Rules for AI (Read Every Session)
-1. This site sells ONLY MLBB products. Never add other games.
-2. No blog page, no games dropdown, no unrelated navigation.
-3. Navigation: Home, Top Up, Accounts, Wallet, Login — that's it.
-4. Dark theme always. Gold (#ffd700) accents always.
-5. Mobile-first always. Test all layouts at 375px width.
-6. All prices in INR (₹) by default, convert for foreign users.
-7. Wallet checkout = 5% off. Always show this incentive.
-8. Never store plain-text passwords or account credentials.
-9. All payment webhooks must verify signatures before processing.
-10. Keep UI minimal and fast. No unnecessary animations or bloat.
-11. Every page must have proper loading states and error states.
-12. Admin routes must be protected by role check middleware.
-```
-
----
-
-Paste the entire block above as your `GEMINI.md` in the root of your project folder. Then start your first Gemini CLI session with:
-```
-Read GEMINI.md fully before doing anything.
-Scaffold a Next.js 14 app router project with Tailwind CSS and
-Prisma. Set up the folder structure, install all dependencies
-listed in the tech stack, and initialize the Prisma schema with
-all tables from the Database Schema section. Do not start any
-UI yet, just the foundation.
+## Strict Rules (Read Every Session)
+1. Brand is Artisan.gg everywhere. No other name.
+2. Currently MLBB only on storefront. Architecture must
+   support multiple games. Use gameId on all relevant
+   models so new games need zero database changes.
+3. No blog. No unrelated pages.
+4. Nav: Home, Games (MLBB only for now), Wallet, Login.
+5. Dark theme always. Gold #ffd700 accents always.
+6. Mobile-first always. Test at 375px.
+7. INR default. Auto-convert for foreign users.
+8. Razorpay is the only payment gateway. No exceptions.
+9. Smile.one handles MLBB delivery. Built to swap per game.
+10. Wallet pay always shows 5% discount incentive.
+11. Never store plain text passwords or credentials.
+12. All Razorpay webhooks must verify signature first.
+13. Admin routes protected by role middleware always.
+14. Show savings in rupee amount not percentage.
+15. Every page needs loading and error states.
