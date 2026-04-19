@@ -9,15 +9,30 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function WalletPage() {
-  const { data: session } = useSession();
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const [summary, setSummary] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+          router.push('/login')
+        }
+      })
+      .catch(() => setUser(null))
+  }, [router])
+
+  useEffect(() => {
+    if (!user) return;
     setLoading(true);
     fetch('/api/dashboard/summary')
       .then(r => r.json())
@@ -29,7 +44,7 @@ export default function WalletPage() {
         console.error('Error fetching dashboard summary:', err);
         setLoading(false);
       });
-  }, [session]);
+  }, [user]);
 
   const inrBalance = summary?.walletBalance ?? 0;
   const coinBalance = Math.floor(inrBalance / 1.5);

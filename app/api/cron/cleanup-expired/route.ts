@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
         where: { userId: user.id },
       }),
       // Delete all sessions
-      prisma.session.deleteMany({
+      prisma.resellerSession.deleteMany({
         where: { userId: user.id },
       }),
     ])

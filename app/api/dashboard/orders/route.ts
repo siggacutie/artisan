@@ -1,16 +1,16 @@
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getResellerSession()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const orders = await prisma.order.findMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: {

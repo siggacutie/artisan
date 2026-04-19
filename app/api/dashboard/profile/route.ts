@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/validateOrigin'
@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getResellerSession()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -26,8 +26,37 @@ export async function POST(req: NextRequest) {
     const safeName = sanitizeHtml(name)
     
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: user.id },
       data: { name: safeName }
+    })
+
+    return NextResponse.json({ success: true, name: updatedUser.name })
+  } catch (error) {
+    console.error('Profile update error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  if (!validateOrigin(req)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const user = await getResellerSession()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { name, image } = await req.json()
+
+    const updateData: any = {}
+    if (name) updateData.name = sanitizeHtml(name)
+    if (image) updateData.avatarUrl = image
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: updateData
     })
 
     return NextResponse.json({ success: true, name: updatedUser.name })

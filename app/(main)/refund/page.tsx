@@ -1,9 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from "framer-motion"
 
 export default function RefundPage() {
+  useEffect(() => {
+    document.title = "Refund Policy | ArtisanStore.xyz";
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#050810] py-24 px-6 md:px-12">
       <motion.div 

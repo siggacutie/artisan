@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import Razorpay from 'razorpay'
 import { validateOrigin } from '@/lib/validateOrigin'
@@ -14,12 +14,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = await getResellerSession()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const rl = rateLimit(`order:${session.user.id}`, 5, 60 * 1000)
+  const rl = rateLimit(`order:${user.id}`, 5, 60 * 1000)
   if (!rl.allowed) {
-    securityLog('RATE_LIMIT_ORDER_CREATE', { userId: session.user.id })
+    securityLog('RATE_LIMIT_ORDER_CREATE', { userId: user.id })
     return NextResponse.json({ error: 'Too many order attempts. Please wait a moment.' }, { status: 429 })
   }
 
@@ -35,24 +35,24 @@ export async function POST(req: NextRequest) {
   try {
     const { packageId, playerId, zoneId, username } = await req.json()
 
-    // Get current user details
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    // Get current user details from DB to check restrictions
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
       select: { id: true, role: true, isBanned: true },
     })
 
-    if (!user || user.isBanned) {
+    if (!dbUser || dbUser.isBanned) {
       return NextResponse.json({ error: 'Account restricted' }, { status: 403 })
     }
 
-    const isReseller = user.role === 'RESELLER'
+    const isReseller = dbUser.role === 'RESELLER'
 
     // Reseller Rate Limiting
     if (isReseller) {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       const orderCount = await prisma.order.count({
         where: {
-          userId: user.id,
+          userId: dbUser.id,
           createdAt: { gte: twentyFourHoursAgo }
         }
       })
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
     const pkg = packagesWithPrices.find(p => p.id === packageId)
 
     if (!pkg) {
-      securityLog('INVALID_PACKAGE_SELECTED', { userId: session.user.id, packageId })
+      securityLog('INVALID_PACKAGE_SELECTED', { userId: user.id, packageId })
       return NextResponse.json({ error: 'Invalid package selected' }, { status: 400 })
     }
 
     if (!validators.playerId(playerId) || !validators.zoneId(zoneId) || !validators.username(username)) {
-      securityLog('INVALID_INPUT', { userId: session.user.id, packageId, playerId, zoneId })
+      securityLog('INVALID_INPUT', { userId: user.id, packageId, playerId, zoneId })
       return NextResponse.json({ error: 'Invalid input details' }, { status: 400 })
     }
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
     const duplicateOrder = await prisma.order.findFirst({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         productId: pkg.supplierProductId,
         paymentStatus: 'PENDING',
         createdAt: { gte: fiveMinutesAgo },
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       currency: 'INR',
       receipt: `order_${Date.now()}`,
       notes: {
-        userId: session.user.id,
+        userId: user.id,
         playerId,
         zoneId,
         username: safeUsername,
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     const dbOrder = await prisma.order.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         gameId: game.id,
         type: 'TOPUP',
         productId: pkg.supplierProductId,

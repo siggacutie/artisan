@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Orbitron, Rajdhani, Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from 'next/script';
+import { Toaster } from "sonner";
 
 const orbitron = Orbitron({
   variable: "--font-orbitron",
@@ -24,12 +25,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
-import { Toaster } from "sonner";
-
 export const metadata: Metadata = {
-  title: "Artisan.gg - Top Up. Play Better.",
-  description: "Artisan.gg is a dark-themed mobile-first e-commerce platform for gaming top-ups.",
+  title: "ArtisanStore.xyz — Cheapest MLBB Diamond Top-Ups",
+  description: "ArtisanStore.xyz is a dark-themed mobile-first e-commerce platform for gaming top-ups.",
 };
 
 export default function RootLayout({
@@ -43,10 +41,8 @@ export default function RootLayout({
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </head>
       <body className="min-h-screen bg-[#09090b] text-white" suppressHydrationWarning={true}>
-        <SessionProviderWrapper>
-          {children}
-          <Toaster position="top-right" theme="dark" richColors />
-        </SessionProviderWrapper>
+        {children}
+        <Toaster position="top-right" theme="dark" richColors />
       </body>
     </html>
   );

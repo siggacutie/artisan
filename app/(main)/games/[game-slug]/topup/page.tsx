@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import NextLink from 'next/link'
 import Image from 'next/image'
@@ -15,7 +14,8 @@ import Navbar from '@/components/layout/Navbar'
 import { toast } from 'sonner'
 
 export default function TopUpPage() {
-  const { data: session } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [userId, setUserId] = useState('')
   const [zoneId, setZoneId] = useState('')
@@ -29,6 +29,22 @@ export default function TopUpPage() {
   const [loadingPackages, setLoadingPackages] = useState(true)
 
   useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+          // For topup page, we might want to allow viewing but not buying
+          // router.push('/login')
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [router])
+
+  useEffect(() => {
     // Fetch packages
     fetch('/api/packages', { cache: 'no-store' })
       .then(r => r.json())
@@ -40,13 +56,13 @@ export default function TopUpPage() {
       .finally(() => setLoadingPackages(false))
 
     // Fetch balance
-    if (session) {
+    if (user) {
       fetch('/api/dashboard/summary')
         .then(r => r.json())
         .then(s => setBalance(s.walletBalance ?? 0))
         .catch(err => console.error('Error fetching balance:', err))
     }
-  }, [session])
+  }, [user])
 
   const handleVerify = async () => {
     if (!userId || !zoneId) return

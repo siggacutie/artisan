@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 
 const businessDetails = {
@@ -12,6 +12,10 @@ const businessDetails = {
 };
 
 export default function TermsPage() {
+  useEffect(() => {
+    document.title = "Terms of Service | ArtisanStore.xyz";
+  }, []);
+
   const sections = [
     {
       title: "1. About Us",

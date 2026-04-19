@@ -1,122 +1,193 @@
 'use client'
-import { signIn, useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState, Suspense } from "react"
-import { Loader2, MessageCircle } from 'lucide-react'
 
-function LoginContent() {
-  const { data: session, status } = useSession()
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
+
+export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const error = searchParams.get("error")
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const errorMessages: Record<string, string> = {
-    not_authorized: 'Access restricted. Contact us on WhatsApp to become a reseller.',
-    account_banned: 'Your account has been suspended. Contact support.',
-    not_reseller: 'This account does not have reseller access.',
-    no_invite: 'No valid invite found. Please use a valid invite link to sign up.',
-    AccessDenied: 'Access restricted. Contact us on WhatsApp to become a reseller.',
-  }
-
-  const errorMessage = error ? (errorMessages[error] || 'Login failed. Please try again.') : null
-
-  useEffect(() => {
-    if (status === "loading") return
-    if (session?.user) {
-      router.replace("/games")
+  async function handleLogin() {
+    if (!username.trim() || !password) {
+      setError('Please enter your username and password')
+      return
     }
-  }, [session, status, router])
-
-  if (status === "loading") {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#050810', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Loader2 className="animate-spin text-gold" size={32} />
-      </div>
-    )
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/reseller/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Login failed')
+        return
+      }
+      router.replace('/games')
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#050810', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ backgroundColor: '#0d1120', border: '1px solid rgba(255,215,0,0.15)', borderRadius: '16px', padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'Orbitron', color: '#ffffff' }}>
-            ARTISAN<span style={{ color: '#ffd700' }}>store</span>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#050810',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Inter, sans-serif',
+      padding: '24px',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
+        backgroundColor: '#0d1120',
+        border: '1px solid rgba(255,215,0,0.1)',
+        borderRadius: '16px',
+        padding: '40px 32px',
+      }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '24px', fontWeight: 700 }}>
+            <span style={{ color: '#ffffff' }}>ARTISAN</span>
+            <span style={{ color: '#ffd700' }}>store</span>
+            <span style={{ color: '#475569', fontSize: '12px', marginLeft: '2px' }}>.xyz</span>
           </div>
-          <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '2px', marginTop: '8px' }}>
-            Reseller Login
-          </div>
+          <p style={{ color: '#64748b', fontSize: '13px', marginTop: '8px' }}>Reseller Login</p>
         </div>
 
-        {errorMessage && (
+        {/* Error */}
+        {error && (
           <div style={{
-            backgroundColor: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.2)',
+            backgroundColor: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.3)',
             borderRadius: '8px',
-            padding: '12px 14px',
+            padding: '12px 16px',
             color: '#ef4444',
-            fontFamily: 'Inter',
             fontSize: '13px',
-            marginBottom: '24px',
-            textAlign: 'left'
+            marginBottom: '20px',
           }}>
-            {errorMessage}
+            {error}
           </div>
         )}
 
-        <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={acceptedTerms}
-              onChange={(e) => setAcceptedTerms(e.target.checked)}
-              style={{ marginTop: '4px' }}
-            />
-            <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px', lineHeight: '1.4' }}>
-              I agree to the <a href="/terms" target="_blank" style={{ color: '#ffd700' }}>Terms of Service</a> and <a href="/privacy" target="_blank" style={{ color: '#ffd700' }}>Privacy Policy</a>.
-            </span>
+        {/* Username */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', color: '#64748b', fontSize: '13px', marginBottom: '6px' }}>
+            Username
           </label>
+          <input
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            placeholder="your_username"
+            autoComplete="username"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              backgroundColor: '#050810',
+              border: '1px solid rgba(255,215,0,0.15)',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
         </div>
 
+        {/* Password */}
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', color: '#64748b', fontSize: '13px', marginBottom: '6px' }}>
+            Password
+          </label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              style={{
+                width: '100%',
+                padding: '12px 44px 12px 14px',
+                backgroundColor: '#050810',
+                border: '1px solid rgba(255,215,0,0.15)',
+                borderRadius: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: 'Inter, sans-serif',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <button
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                padding: '0',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Login button */}
         <button
-          onClick={() => signIn("google", { callbackUrl: "/games" })}
-          disabled={!acceptedTerms}
+          onClick={handleLogin}
+          disabled={loading}
           style={{
-            width: "100%", padding: "14px 24px",
-            backgroundColor: acceptedTerms ? "#ffffff" : "#1a1a1a",
-            color: acceptedTerms ? "#050810" : "#475569",
-            border: "none", borderRadius: "10px",
-            fontFamily: "Inter", fontSize: "15px", fontWeight: "700",
-            cursor: acceptedTerms ? "pointer" : "not-allowed",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: "12px", transition: 'all 0.2s'
+            width: '100%',
+            padding: '13px',
+            backgroundColor: loading ? '#334155' : '#ffd700',
+            color: '#050810',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontFamily: 'Orbitron, sans-serif',
+            fontWeight: 700,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
           }}
         >
-          <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: '18px', height: '18px' }} />
-          Continue with Google
+          {loading && <Loader2 size={16} className="animate-spin" />}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
-        <div style={{ marginTop: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-          <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '13px', marginBottom: '12px' }}>
-            Don't have access?
-          </p>
-          <a href="https://wa.me/919387606432" target="_blank" rel="noopener noreferrer" style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            color: '#ffd700', fontFamily: 'Inter', fontSize: '14px', fontWeight: '600', textDecoration: 'none'
-          }}>
-            <MessageCircle size={18} />
+        <p style={{ textAlign: 'center', color: '#475569', fontSize: '12px', marginTop: '20px' }}>
+          Don't have access?{' '}
+          <a href="https://wa.me/WHATSAPP_NUMBER_PLACEHOLDER" target="_blank" style={{ color: '#64748b' }}>
             Contact us on WhatsApp
           </a>
-        </div>
+        </p>
       </div>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#050810' }} />}>
-      <LoginContent />
-    </Suspense>
   )
 }

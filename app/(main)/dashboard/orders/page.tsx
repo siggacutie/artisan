@@ -8,15 +8,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DiamondSVG } from "@/components/shared/Icons";
-import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function OrdersPage() {
-  const { data: session } = useSession();
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+          router.push('/login')
+        }
+      })
+      .catch(() => setUser(null))
+  }, [router])
+
+  useEffect(() => {
+    if (!user) return;
     setLoading(true);
     fetch('/api/dashboard/orders')
       .then(r => r.json())
@@ -28,7 +43,7 @@ export default function OrdersPage() {
         console.error('Error fetching orders:', err);
         setLoading(false);
       });
-  }, [session]);
+  }, [user]);
 
   if (loading) {
     return (

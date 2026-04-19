@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   Smartphone, 
@@ -14,10 +14,31 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function AddFundsPage() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+          router.push('/login')
+        }
+      })
+      .catch(() => {
+        setUser(null)
+      })
+      .finally(() => setLoading(false))
+  }, [router])
 
   const presets = [100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000];
 

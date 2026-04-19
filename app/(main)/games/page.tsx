@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Zap, 
@@ -16,6 +16,22 @@ export default function GamesPage() {
   const router = useRouter();
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [router])
 
   return (
     <div className="min-h-screen bg-[#050810] text-white font-inter">

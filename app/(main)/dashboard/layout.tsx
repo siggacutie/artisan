@@ -17,21 +17,38 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const pathname = usePathname();
   const [summary, setSummary] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+          router.push('/login')
+        }
+      })
+      .catch(() => {
+        setUser(null)
+      })
+  }, [router])
+
+  useEffect(() => {
+    if (!user) return;
     setLoading(true);
     fetch('/api/dashboard/summary')
       .then(r => r.json())
@@ -43,7 +60,13 @@ export default function DashboardLayout({
         console.error('Error fetching dashboard summary:', err);
         setLoading(false);
       });
-  }, [session]);
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await fetch('/api/reseller/auth/logout', { method: 'POST' })
+    router.push('/')
+    router.refresh()
+  }
 
   const navItems = [
     { id: "wallet", label: "Wallet", icon: Wallet, href: "/dashboard/wallet" },
@@ -63,8 +86,8 @@ export default function DashboardLayout({
         <aside className="hidden md:flex flex-col w-[260px] bg-[#0d1120] border-r border-[rgba(255,215,0,0.08)] h-full overflow-y-auto shrink-0">
           <div className="p-8 pb-4 space-y-4">
             <div className="flex flex-col space-y-0.5 text-left">
-              <h3 className="text-white font-bold font-orbitron text-sm">{session?.user?.name ?? 'Player'}</h3>
-              <p className="text-gray-400 text-[10px]">{session?.user?.email}</p>
+              <h3 className="text-white font-bold font-orbitron text-sm">{user?.name ?? 'Player'}</h3>
+              <p className="text-gray-400 text-[10px]">{user?.email}</p>
               <div className="flex items-center space-x-1.5 mt-2 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 w-fit">
                 <CheckCircle2 className="w-3 h-3 text-green-500" />
                 <span className="text-[9px] text-green-500 font-black uppercase tracking-widest">Verified</span>
@@ -91,7 +114,7 @@ export default function DashboardLayout({
 
           <div className="mt-auto p-4 border-t border-white/5 bg-black/20">
             <button 
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={handleSignOut}
               className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-gray-500 hover:text-red-500 transition-all duration-200 group text-[11px] font-bold uppercase tracking-widest font-rajdhani"
             >
               <LogOut className="w-4 h-4" />
@@ -108,12 +131,12 @@ export default function DashboardLayout({
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-2xl font-bold font-orbitron text-white">My Dashboard</h1>
-                  <p className="text-gray-500 text-xs mt-1">Welcome back, {session?.user?.name?.split(' ')[0] ?? 'Player'}</p>
+                  <p className="text-gray-500 text-xs mt-1">Welcome back, {user?.name?.split(' ')[0] ?? 'Player'}</p>
                 </div>
                 <Avatar className="w-10 h-10 border border-gold/20">
-                  <AvatarImage src={session?.user?.image ?? ''} />
+                  <AvatarImage src={user?.image ?? ''} />
                   <AvatarFallback className="bg-gold/10 text-gold font-bold">
-                    {session?.user?.name?.[0]?.toUpperCase() ?? 'U'}
+                    {user?.name?.[0]?.toUpperCase() ?? 'U'}
                   </AvatarFallback>
                 </Avatar>
               </div>

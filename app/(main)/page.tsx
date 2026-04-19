@@ -1,6 +1,5 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -15,20 +14,35 @@ interface PackageItem {
 }
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [packages, setPackages] = useState<PackageItem[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [activeTab, setActiveTab] = useState<'standard' | 'double' | 'weekly'>('standard')
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace('/games')
-    }
-  }, [status, router])
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [router])
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (user) {
+      router.replace('/games')
+    }
+  }, [user, router])
+
+  useEffect(() => {
+    if (!user && !loading) {
       fetch('/api/packages?landing=true', { cache: 'no-store' })
         .then(r => r.json())
         .then(data => {
@@ -38,9 +52,9 @@ export default function HomePage() {
         .catch(() => setPackages([]))
         .finally(() => setLoadingPackages(false))
     }
-  }, [status])
+  }, [user, loading])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#050810] flex items-center justify-center">
         <Loader2 className="animate-spin text-gold w-8 h-8" />
@@ -48,7 +62,7 @@ export default function HomePage() {
     )
   }
 
-  if (status === 'authenticated') return null
+  if (!!user) return null
 
   const filteredPackages = packages.filter(p => p.section === activeTab)
 

@@ -25,6 +25,21 @@ export async function PATCH(
     if (typeof body.adminNote === 'string') updateData.adminNote = body.adminNote
     if (typeof body.walletBalance === 'number') updateData.walletBalance = body.walletBalance
 
+    // Change username
+    if (typeof body.username === 'string') {
+      const taken = await prisma.user.findFirst({
+        where: { username: { equals: body.username, mode: 'insensitive' }, NOT: { id: userId } }
+      })
+      if (taken) return NextResponse.json({ error: 'Username already taken' }, { status: 400 })
+      updateData.username = body.username.trim()
+    }
+
+    // Change password
+    if (typeof body.newPassword === 'string' && body.newPassword.length >= 8) {
+      const bcrypt = await import('bcryptjs')
+      updateData.passwordHash = await bcrypt.hash(body.newPassword, 12)
+    }
+
     // Handle manual reseller grant with membership duration
     if (body.isReseller === true && body.membershipMonths) {
       const months = Number(body.membershipMonths)
@@ -67,6 +82,7 @@ export async function GET(
       where: { id: userId },
       select: {
         id: true,
+        username: true,
         email: true,
         name: true,
         role: true,
@@ -86,6 +102,34 @@ export async function GET(
     return NextResponse.json(user)
   } catch (error) {
     console.error('[admin/users/[id] GET] Error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await getAdminSession()
+    if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { id: userId } = await params
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    // Delete all related data then user
+    await prisma.$transaction([
+      prisma.resellerSession.deleteMany({ where: { userId } }),
+      prisma.walletTransaction.deleteMany({ where: { userId } }),
+      prisma.order.deleteMany({ where: { userId } }),
+      prisma.loginHistory.deleteMany({ where: { userId } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ])
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[admin/users/[id] DELETE] Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

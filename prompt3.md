@@ -1,176 +1,176 @@
-Read GEMINI.md before doing anything.
+Style: color #64748b, fontSize 14px, with a small note "(contact admin to change)" in #475569 12px
 
-Multiple tasks. Read all before touching any file.
+### 2b. Fix avatar upload — Open file: app/api/dashboard/avatar/route.ts
 
----
+The avatar upload saves to Supabase Storage but the URL never shows up. The issue is likely the public URL is not being saved correctly to the user record, or the Supabase bucket is not public.
 
-## TASK 1 — Update Tawk.to widget with correct script
-
-Open file: components/providers/TawkToWidget.tsx
-
-Replace entire contents with:
+Replace the entire route with:
 
 ```typescript
-'use client'
+import { NextRequest, NextResponse } from 'next/server'
+import { getResellerSession } from '@/lib/resellerAuth'
+import { prisma } from '@/lib/prisma'
+import { createClient } from '@supabase/supabase-js'
 
-import { useEffect } from 'react'
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+)
 
-export function TawkToWidget() {
-  useEffect(() => {
-    if ((window as any).Tawk_API) return
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_SIZE = 2 * 1024 * 1024 // 2MB
 
-    ;(function () {
-      const Tawk_API = (window as any).Tawk_API || {}
-      const Tawk_LoadStart = new Date()
-      void Tawk_LoadStart
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getResellerSession()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-      const s1 = document.createElement('script')
-      const s0 = document.getElementsByTagName('script')[0]
-      s1.async = true
-      s1.src = 'https://embed.tawk.to/69da8af3f28f6f1c3576711b/1jluqtism'
-      s1.charset = 'UTF-8'
-      s1.setAttribute('crossorigin', '*')
-      s0.parentNode!.insertBefore(s1, s0)
-    })()
-  }, [])
+    const formData = await req.formData()
+    const file = formData.get('avatar') as File | null
 
-  return null
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Only JPEG, PNG, and WebP files are allowed' }, { status: 400 })
+    }
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'File must be under 2MB' }, { status: 400 })
+    }
+
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Validate magic bytes
+    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50
+    const isWebp = buffer.slice(8, 12).toString('ascii') === 'WEBP'
+    if (!isJpeg && !isPng && !isWebp) {
+      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
+    }
+
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+    const fileName = `avatars/${user.id}.${ext}`
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: true,
+      })
+
+    if (uploadError) {
+      console.error('[avatar upload] Supabase error:', uploadError)
+      return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
+
+    const publicUrl = urlData.publicUrl
+
+    // Save URL to user record
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: publicUrl },
+    })
+
+    return NextResponse.json({ success: true, avatarUrl: publicUrl })
+  } catch (error) {
+    console.error('[avatar upload]', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
 ```
 
+### 2c. Make sure Supabase avatars bucket is public
+
+In Supabase dashboard → Storage → Buckets → avatars bucket → click the bucket → Policies tab → make sure there is a public read policy. If not, run this in Supabase SQL Editor:
+
+```sql
+CREATE POLICY "Public read avatars" ON storage.objects
+FOR SELECT USING (bucket_id = 'avatars');
+```
+
+Also make sure the bucket exists. If it doesn't, create it:
+Go to Supabase → Storage → New Bucket → name: "avatars" → check "Public bucket" → Create.
+
+### 2d. Update profile page to show avatar after upload
+
+Open file: app/(main)/dashboard/profile/page.tsx
+
+After a successful avatar upload (API returns { avatarUrl }), update the displayed avatar immediately without requiring a page refresh:
+
+```typescript
+const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl || null)
+
+// After successful upload:
+setAvatarUrl(data.avatarUrl)
+```
+
+The avatar display:
+- Show circular image if avatarUrl exists: borderRadius 50%, width 80px, height 80px, objectFit cover, border 2px solid rgba(255,215,0,0.3)
+- If no avatar: show a circle with user's first letter of username, background rgba(255,215,0,0.1), color #ffd700, Orbitron font, 32px
+
 ---
+## TASK 3 — Hide authenticated navbar on public pages
 
-## TASK 2 — Update address in Terms and Privacy pages
+Open file: app/(main)/layout.tsx
 
-Open file: app/(main)/terms/page.tsx
-Find every occurrence of the old address:
-"GMC Hostel Rd, Christian Basti, Guwahati, Assam 781006, India"
-Replace with:
-"Dharmapur, Abhayapuri, Bongaigaon, Assam 783384, India"
+The Navbar component currently shows for all routes in the (main) layout group. It should only show the authenticated navbar when the user is logged in. When the user is NOT logged in, pages like /terms, /privacy, /refund, /contact should show a minimal navbar (logo only + login button).
 
-Also find and remove the line "Wallet payments receive a 5% discount." from the payments section. Do not replace it with anything.
+The Navbar component already handles two modes (public vs authenticated). The issue is it always renders. Fix the layout so:
+- /terms, /privacy, /refund, /contact — always show minimal public navbar regardless of auth state
+- /games, /dashboard, /reseller, /wallet, /membership — show authenticated navbar (middleware already protects these)
+- / (homepage) — existing logic (minimal if unauthed, redirect if authed)
 
-Open file: app/(main)/privacy/page.tsx
-Find every occurrence of the old address and replace with:
-"Dharmapur, Abhayapuri, Bongaigaon, Assam 783384, India"
+The simplest fix: in Navbar.tsx, when fetching /api/reseller/auth/me returns 401, show the minimal public navbar (logo left + Login button right). This is likely already the behavior — confirm it works correctly by checking that the fetch to /api/reseller/auth/me is happening and the public mode renders correctly when it returns 401.
 
----
-
-## TASK 3 — Create Refund Policy page
-
-Create file: app/(main)/refund/page.tsx
-
-This is a standalone page in the (main) layout group so it has the navbar.
-
-Content must be exactly:
-
-Title: "Refund & Cancellation Policy" in Orbitron 28px white
-Last updated: "Last Updated: April 2025" in Inter 13px #64748b
-Background: #050810, max-width 800px, margin auto, padding 60px 24px
-
-Sections (Inter 15px, line-height 1.8, color #cbd5e1):
-
-**1. Digital Goods Policy**
-All purchases on ArtisanStore.xyz are for digital goods (MLBB diamond top-ups) which are delivered instantly to your in-game account. Due to the instant and irreversible nature of digital delivery, all completed transactions are generally non-refundable once diamonds have been credited to your account.
-
-**2. Eligible Refund Cases**
-We will issue a full refund in the following cases:
-- Diamonds were not delivered to your account within 24 hours of payment confirmation
-- You were charged but no order was created in our system
-- Duplicate payment was made for the same order
-- Technical error on our platform caused an incorrect amount to be charged
-
-**3. Non-Eligible Cases**
-Refunds will NOT be issued for:
-- Incorrect Player ID or Zone ID provided by the customer
-- Change of mind after purchase
-- Account bans by Moonton after delivery
-- Delays caused by Moonton's servers
-
-**4. How to Request a Refund**
-To raise a refund request, email support@artisanstore.xyz within 24 hours of your purchase with:
-- Your registered email address
-- Order ID
-- Description of the issue
-- Screenshot of your in-game account showing diamonds not received (if applicable)
-We will respond within 24 hours and process approved refunds within 5-7 business days.
-
-**5. Cancellations**
-Orders cannot be cancelled once submitted as processing begins immediately. If you have made an error, contact us immediately at support@artisanstore.xyz and we will do our best to assist before delivery is completed.
-
-**6. Wallet Balance**
-Wallet top-ups are non-refundable once credited to your ArtisanStore wallet. Wallet balance has no cash value and cannot be withdrawn.
-
-**7. Chargebacks**
-We strongly request customers to contact us before initiating a chargeback with their bank. Unauthorized chargebacks may result in account suspension. We are happy to resolve all disputes directly.
-
-**8. Contact**
-Email: support@artisanstore.xyz
-Phone: +91 9387606432
-Address: Dharmapur, Abhayapuri, Bongaigaon, Assam 783384, India
-
-Section headings: Orbitron 16px #ffd700, marginTop 32px, marginBottom 12px
-Body text: Inter 15px #cbd5e1
-Bullet points: rendered as plain divs with "— " prefix, NOT html ul/li tags
-Horizontal dividers between sections: 1px solid rgba(255,215,0,0.08)
+If the navbar is incorrectly showing the authenticated version on public pages, the root cause is that the navbar is reading a stale cached session. Add cache: 'no-store' to the fetch('/api/reseller/auth/me') call in Navbar.tsx.
 
 ---
 
-## TASK 4 — Add legal pages to public landing page footer
+## TASK 4 — Add policy agreement checkbox to invite signup page
 
-Open file: app/(main)/page.tsx
+Open file: app/invite/[token]/page.tsx
 
-Find the footer section at the bottom of the landing page. Add these links in the footer:
+Add a checkbox above the "Create Account" button:
 
-Links to add: Terms of Service (/terms), Privacy Policy (/privacy), Refund Policy (/refund), Contact (/contact)
+State: `const [agreedToTerms, setAgreedToTerms] = useState(false)`
 
-Style: display flex, gap 24px, justifyContent center, flexWrap wrap, marginTop 16px
-Each link: Inter 13px, color #475569, textDecoration none, on hover color #64748b
-Separator between links: " · " in #334155
+Checkbox UI:
+- Checkbox: actual HTML input type="checkbox" styled with accentColor: '#ffd700'
+- Label text in Inter 13px #94a3b8
+- "Terms of Service" is a link to /terms — color #ffd700, no underline
+- "Privacy Policy" is a link to /privacy — color #ffd700, no underline  
+- "Refund Policy" is a link to /refund — color #ffd700, no underline
+- Links open in new tab (target="_blank")
+- Container: display flex, alignItems flex-start, gap 10px, marginBottom 20px
 
-Do not change anything else on the landing page.
+The "Create Account" button must be DISABLED if agreedToTerms is false:
+- When disabled: backgroundColor #334155, cursor not-allowed
+- When enabled: backgroundColor #ffd700, cursor pointer
 
----
-
-## TASK 5 — Update authenticated navbar support dropdown
-
-Open file: components/layout/Navbar.tsx
-
-Find the SUPPORT dropdown in the authenticated navbar. Currently it has some links. Replace its contents with these exact links:
-
-- Contact Us → /contact
-- Terms of Service → /terms  
-- Privacy Policy → /privacy
-- Refund Policy → /refund
-
-Each item: Inter 14px white, padding 10px 16px, display block, no underline, on hover background rgba(255,215,0,0.05)
-Dropdown container: background #0d1120, border 1px solid rgba(255,215,0,0.1), borderRadius 8px, minWidth 180px
-Dropdown appears on CSS hover of the SUPPORT nav item, NOT JavaScript toggle.
-
-Do not change any other part of the navbar.
-
----
-
-## TASK 6 — Add legal links to authenticated navbar (logged-in footer or secondary area)
-
-The terms, privacy, and refund links are now in the SUPPORT dropdown (Task 5). No additional changes needed for the authenticated navbar beyond what Task 5 covers.
-
----
-
+In the handleSignup function, add this check at the top:
+```typescript
+if (!agreedToTerms) {
+  setError('You must agree to the Terms of Service, Privacy Policy, and Refund Policy')
+  return
+}
+```
 ## VERIFICATION STEPS
 
-1. Visit / unauthenticated — confirm footer shows Terms, Privacy, Refund Policy, Contact links
-2. Visit /terms — confirm address shows "Dharmapur, Abhayapuri, Bongaigaon, Assam 783384" and no "5% discount" mention
-3. Visit /privacy — confirm address is updated
-4. Visit /refund — confirm page renders with all 8 sections
-5. Hover SUPPORT in authenticated navbar — confirm dropdown shows Contact Us, Terms of Service, Privacy Policy, Refund Policy
-6. Confirm Tawk.to chat bubble appears on main pages
-7. Visit /admin — confirm NO Tawk.to widget
+1. Visit artisanstore.xyz — confirm browser tab shows "ArtisanStore.xyz — Cheapest MLBB Diamond Top-Ups"
+2. Visit /terms — confirm tab shows "Terms of Service | ArtisanStore.xyz"
+3. Visit /dashboard/profile — confirm NO email field, username shows as read-only
+4. Upload a profile picture — confirm it appears immediately without page refresh
+5. Refresh the profile page — confirm avatar persists
 
 ## DO NOT:
-- Do NOT use html ul/li tags for bullet points in the refund page
 - Do NOT add framer-motion
 - Do NOT use emojis
-- Do NOT modify auth.ts or middleware.ts
-- Do NOT change the landing page pricing table or hero section
-- Do NOT add the Tawk.to widget to the admin layout
+- Do NOT change any auth logic
+- Do NOT modify admin pages
+- Do NOT add email field back anywhere on the profile page
+- Do NOT change the color palette

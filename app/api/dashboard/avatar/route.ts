@@ -1,77 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
-import { validateOrigin } from '@/lib/validateOrigin'
-import { securityLog } from '@/lib/securityLog'
-import { rateLimit } from '@/lib/rateLimit'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+)
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_SIZE = 2 * 1024 * 1024 // 2MB
 
 export async function POST(req: NextRequest) {
-  if (!validateOrigin(req)) {
-    securityLog('CSRF_BLOCKED', { origin: req.headers.get('origin'), path: req.nextUrl.pathname })
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const rl = rateLimit(`avatar:${session.user.id}`, 5, 60 * 60 * 1000)
-  if (!rl.allowed) {
-    return NextResponse.json({ error: 'Too many upload attempts.' }, { status: 429 })
-  }
-
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    return NextResponse.json({ error: 'Storage service misconfigured' }, { status: 500 })
-  }
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  )
-
   try {
+    const user = await getResellerSession()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const formData = await req.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('avatar') as File | null
+
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    if (buffer.byteLength > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: 'Image must be under 2MB' }, { status: 400 })
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Only JPEG, PNG, and WebP files are allowed' }, { status: 400 })
+    }
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'File must be under 2MB' }, { status: 400 })
     }
 
-    const bytes = new Uint8Array(buffer)
-    const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF
-    const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
-    const isWebp = bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
 
+    // Validate magic bytes
+    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50
+    const isWebp = buffer.slice(8, 12).toString('ascii') === 'WEBP'
     if (!isJpeg && !isPng && !isWebp) {
-      securityLog('FILE_UPLOAD_REJECTED', { userId: session.user.id, detectedBytes: `${bytes[0]},${bytes[1]},${bytes[2]}` })
-      return NextResponse.json({ error: 'Invalid image file. Only JPEG, PNG, and WebP are allowed.' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
-    const detectedExt = isPng ? 'png' : isWebp ? 'webp' : 'jpg'
-    const detectedMime = isPng ? 'image/png' : isWebp ? 'image/webp' : 'image/jpeg'
-    const storagePath = `avatars/${session.user.id}.${detectedExt}`
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+    const fileName = `avatars/${user.id}.${ext}`
 
-    const { error } = await supabase.storage.from('avatars').upload(storagePath, buffer, {
-      contentType: detectedMime,
-      upsert: true,
-    })
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: true,
+      })
 
-    if (error) {
-      console.error('Supabase upload error:', error)
+    if (uploadError) {
+      console.error('[avatar upload] Supabase error:', uploadError)
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
     }
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(storagePath)
-    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
 
-    await prisma.user.update({ where: { id: session.user.id }, data: { image: publicUrl } })
+    const publicUrl = urlData.publicUrl
 
-    return NextResponse.json({ success: true, image: publicUrl })
-  } catch (err: any) {
-    console.error('Avatar upload route error:', err)
+    // Save URL to user record
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: publicUrl },
+    })
+
+    return NextResponse.json({ success: true, avatarUrl: publicUrl })
+  } catch (error) {
+    console.error('[avatar upload]', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

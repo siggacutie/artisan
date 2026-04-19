@@ -1,18 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Zap, Wallet as WalletIcon, UserCircle, MessageSquare } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 export const MobileBottomNav = () => {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  
-  const role = (session?.user as any)?.role;
-  if (!session || role !== "RESELLER") return null;
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [router])
+
+  if (loading) return null;
+  const role = user?.role;
+  if (!user || role !== "RESELLER") return null;
 
   const tabs = [
     { icon: <Home size={20} />, label: "Home", href: "/" },

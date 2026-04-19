@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 
 const businessDetails = {
@@ -12,6 +12,10 @@ const businessDetails = {
 };
 
 export default function PrivacyPage() {
+  useEffect(() => {
+    document.title = "Privacy Policy | ArtisanStore.xyz";
+  }, []);
+
   const sections = [
     {
       title: "1. Introduction",

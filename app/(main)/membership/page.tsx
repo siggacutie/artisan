@@ -1,24 +1,33 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Loader2, Shield, Calendar, Clock, ArrowRight, AlertTriangle } from 'lucide-react'
 
 export default function MembershipPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    } else if (status === 'authenticated') {
-      fetchUserData()
-    }
-  }, [status, router])
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+          fetchUserData()
+        } else {
+          setUser(null)
+          router.push('/login')
+        }
+      })
+      .catch(() => {
+        setUser(null)
+        setLoading(false)
+      })
+  }, [router])
 
   const fetchUserData = async () => {
     try {
@@ -27,14 +36,14 @@ export default function MembershipPage() {
       setUserData(data)
     } catch (error) {
       console.error('Failed to fetch user data:', error)
-      // Fallback to session data if API fails
-      setUserData(session?.user)
+      // Fallback to user data if API fails
+      setUserData(user)
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#050810] flex items-center justify-center">
         <Loader2 className="animate-spin text-gold w-8 h-8" />
@@ -42,9 +51,9 @@ export default function MembershipPage() {
     )
   }
 
-  const user = userData || session?.user
+  const currentUser = userData || user
   const now = new Date()
-  const expiryDate = user?.membershipExpiresAt ? new Date(user.membershipExpiresAt) : null
+  const expiryDate = currentUser?.membershipExpiresAt ? new Date(currentUser.membershipExpiresAt) : null
   const isActive = !expiryDate || expiryDate > now
   const daysRemaining = expiryDate ? Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null
 

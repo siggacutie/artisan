@@ -1,21 +1,21 @@
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getResellerSession()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
       select: { 
         walletBalance: true, 
         name: true, 
         email: true, 
-        image: true, 
+        avatarUrl: true, 
         createdAt: true,
         membershipExpiresAt: true,
         membershipMonths: true,
@@ -26,20 +26,20 @@ export async function GET() {
     })
 
     const orderCount = await prisma.order.count({
-      where: { userId: session.user.id }
+      where: { userId: user.id }
     })
 
     return NextResponse.json({
-      walletBalance: user?.walletBalance ?? 0,
-      name: user?.name,
-      email: user?.email,
-      image: user?.image,
-      createdAt: user?.createdAt,
-      membershipExpiresAt: user?.membershipExpiresAt,
-      membershipMonths: user?.membershipMonths,
-      isReseller: user?.isReseller,
-      isFrozen: user?.isFrozen,
-      isBanned: user?.isBanned,
+      walletBalance: userData?.walletBalance ?? 0,
+      name: userData?.name,
+      email: userData?.email,
+      image: userData?.avatarUrl,
+      createdAt: userData?.createdAt,
+      membershipExpiresAt: userData?.membershipExpiresAt,
+      membershipMonths: userData?.membershipMonths,
+      isReseller: userData?.isReseller,
+      isFrozen: userData?.isFrozen,
+      isBanned: userData?.isBanned,
       orderCount
     })
   } catch (error) {

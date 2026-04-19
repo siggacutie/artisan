@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getResellerSession()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -34,14 +34,14 @@ export async function POST(req: NextRequest) {
 
   // Step 1: Fetch order from DB and verify ownership
   const dbOrder = await prisma.order.findUnique({ where: { id: dbOrderId } })
-  if (!dbOrder || dbOrder.userId !== session.user.id) {
-    securityLog('PAYMENT_ORDER_NOT_FOUND', { userId: session.user.id, dbOrderId })
+  if (!dbOrder || dbOrder.userId !== user.id) {
+    securityLog('PAYMENT_ORDER_NOT_FOUND', { userId: user.id, dbOrderId })
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
 
   // Step 2: Prevent double processing
   if (dbOrder.paymentStatus !== 'PENDING') {
-    securityLog('PAYMENT_ALREADY_PROCESSED', { userId: session.user.id, dbOrderId, status: dbOrder.paymentStatus })
+    securityLog('PAYMENT_ALREADY_PROCESSED', { userId: user.id, dbOrderId, status: dbOrder.paymentStatus })
     return NextResponse.json({ error: 'Order already processed' }, { status: 409 })
   }
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     .digest('hex')
 
   if (expectedSignature !== razorpaySignature) {
-    securityLog('PAYMENT_INVALID_SIGNATURE', { userId: session.user.id, dbOrderId, razorpayOrderId })
+    securityLog('PAYMENT_INVALID_SIGNATURE', { userId: user.id, dbOrderId, razorpayOrderId })
     await prisma.order.update({ where: { id: dbOrderId }, data: { paymentStatus: 'FAILED', orderStatus: 'FAILED' } })
     return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
   }
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   try {
     payment = await razorpay.payments.fetch(razorpayPaymentId)
   } catch {
-    securityLog('PAYMENT_FETCH_FAILED', { userId: session.user.id, razorpayPaymentId })
+    securityLog('PAYMENT_FETCH_FAILED', { userId: user.id, razorpayPaymentId })
     return NextResponse.json({ error: 'Could not verify payment with provider' }, { status: 502 })
   }
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     !['captured', 'authorized'].includes(payment.status)
   ) {
     securityLog('PAYMENT_AMOUNT_MISMATCH', {
-      userId: session.user.id,
+      userId: user.id,
       dbOrderId,
       expected: expectedAmount,
       actual: actualAmount,
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     }),
     prisma.walletTransaction.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         type: 'DEBIT',
         amount: dbOrder.totalPrice,
         currency: 'INR',

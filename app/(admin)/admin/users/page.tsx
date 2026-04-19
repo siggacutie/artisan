@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { 
   Search, UserPlus, ShieldAlert, ShieldCheck, 
   MoreVertical, UserMinus, History, Ban, 
@@ -25,7 +25,24 @@ import { Textarea } from '@/components/ui/textarea'
 import { format } from 'date-fns'
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loadingAuth, setLoadingAuth] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoadingAuth(false))
+  }, [router])
+
   const [users, setUsers] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -39,6 +56,12 @@ export default function AdminUsersPage() {
   const [durationModalOpen, setDurationModalOpen] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(1)
   const [pendingResellerAction, setPendingResellerAction] = useState<boolean>(true)
+
+  const [usernameModalOpen, setUsernameModalOpen] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -55,7 +78,6 @@ export default function AdminUsersPage() {
         setTotal(data.total)
       } else {
         setUsers([])
-        console.error('API did not return users array:', data)
       }
     } catch (err) {
       toast.error("Failed to load users")
@@ -80,12 +102,30 @@ export default function AdminUsersPage() {
         fetchUsers()
         setNoteModalOpen(false)
         setDurationModalOpen(false)
+        setUsernameModalOpen(false)
+        setPasswordModalOpen(false)
       } else {
         const err = await res.json()
         toast.error(err.error || "Update failed")
       }
     } catch (err) {
       toast.error("Error updating user")
+    }
+  }
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this account? This cannot be undone.")) return
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast.success("Account deleted permanently")
+        fetchUsers()
+      } else {
+        const err = await res.json()
+        toast.error(err.error || "Delete failed")
+      }
+    } catch (err) {
+      toast.error("Error deleting user")
     }
   }
 
@@ -110,6 +150,18 @@ export default function AdminUsersPage() {
     setSelectedUser(user)
     setNoteText(user.adminNote || '')
     setNoteModalOpen(true)
+  }
+
+  const openUsernameModal = (user: any) => {
+    setSelectedUser(user)
+    setNewUsername(user.username || '')
+    setUsernameModalOpen(true)
+  }
+
+  const openPasswordModal = (user: any) => {
+    setSelectedUser(user)
+    setNewPassword('')
+    setPasswordModalOpen(true)
   }
 
   const getStatusBadge = (user: any) => {
@@ -140,7 +192,7 @@ export default function AdminUsersPage() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#64748b]" size={18} />
             <Input 
-              placeholder="Search by email or name..." 
+              placeholder="Search by username, email or name..." 
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="bg-[#050810] border-white/5 pl-12 h-14 rounded-2xl placeholder:text-[#334155] focus:border-[#ffd700]/30 transition-all"
@@ -155,7 +207,7 @@ export default function AdminUsersPage() {
           <table className="w-full text-left">
             <thead className="bg-white/5 text-[#64748b] text-[10px] font-black uppercase tracking-widest">
               <tr>
-                <th className="px-8 py-6">User</th>
+                <th className="px-8 py-6">User / Username</th>
                 <th className="px-8 py-6">Role</th>
                 <th className="px-8 py-6">Status</th>
                 <th className="px-8 py-6">Membership</th>
@@ -179,8 +231,8 @@ export default function AdminUsersPage() {
                   <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
-                        <span className="text-white font-black text-sm uppercase italic tracking-tight group-hover:text-[#ffd700] transition-colors">{user.name || 'Anonymous'}</span>
-                        <span className="text-[#64748b] text-xs font-medium">{user.email}</span>
+                        <span className="text-white font-black text-sm uppercase italic tracking-tight group-hover:text-[#ffd700] transition-colors">{user.username || user.name || 'Anonymous'}</span>
+                        <span className="text-[#64748b] text-xs font-medium">{user.email || 'No email'}</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -217,6 +269,16 @@ export default function AdminUsersPage() {
                           <DropdownMenuItem onClick={() => openNoteModal(user)} className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
                             <FileText size={16} className="mr-3" /> 
                             <span className="text-xs font-bold uppercase tracking-widest text-white">Admin Note</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => openUsernameModal(user)} className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
+                            <UserIcon size={16} className="mr-3" /> 
+                            <span className="text-xs font-bold uppercase tracking-widest text-white">Change Username</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => openPasswordModal(user)} className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
+                            <Key size={16} className="mr-3" /> 
+                            <span className="text-xs font-bold uppercase tracking-widest text-white">Change Password</span>
                           </DropdownMenuItem>
 
                           <DropdownMenuSeparator className="bg-white/5 mx-2" />
@@ -256,6 +318,13 @@ export default function AdminUsersPage() {
                               <span className="text-xs font-bold uppercase tracking-widest">Freeze Wallet</span>
                             </DropdownMenuItem>
                           )}
+
+                          <DropdownMenuSeparator className="bg-white/5 mx-2" />
+
+                          <DropdownMenuItem onClick={() => handleDelete(user.id)} className="focus:bg-red-500/20 text-red-500 rounded-xl p-3 cursor-pointer">
+                            <Trash2 size={16} className="mr-3" /> 
+                            <span className="text-xs font-bold uppercase tracking-widest">Delete Account</span>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -267,34 +336,11 @@ export default function AdminUsersPage() {
         </div>
       </Card>
 
-      {/* Pagination */}
-      {total > 20 && (
-        <div className="flex justify-center gap-4 py-4">
-          <Button 
-            disabled={page === 1} 
-            onClick={() => setPage(page - 1)}
-            className="bg-[#0d1120] border border-white/5 rounded-xl px-6"
-          >
-            Previous
-          </Button>
-          <Button 
-            disabled={page * 20 >= total} 
-            onClick={() => setPage(page + 1)}
-            className="bg-[#0d1120] border border-white/5 rounded-xl px-6"
-          >
-            Next
-          </Button>
-        </div>
-      )}
-
       {/* Note Modal */}
       <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
         <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-lg rounded-[2rem]">
           <DialogHeader>
-            <DialogTitle className="font-orbitron italic uppercase">Admin Note: {selectedUser?.email}</DialogTitle>
-            <DialogDescription className="text-[#64748b]">
-              Private notes for this user visible only to admins.
-            </DialogDescription>
+            <DialogTitle className="font-orbitron italic uppercase">Admin Note: {selectedUser?.username || selectedUser?.email}</DialogTitle>
           </DialogHeader>
           <div className="py-6">
             <Textarea 
@@ -315,14 +361,62 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Username Modal */}
+      <Dialog open={usernameModalOpen} onOpenChange={setUsernameModalOpen}>
+        <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-md rounded-[2rem]">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron italic uppercase">Change Username</DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            <Input 
+              value={newUsername}
+              onChange={e => setNewUsername(e.target.value)}
+              placeholder="New username"
+              className="bg-[#050810] border-white/5 rounded-xl h-12"
+            />
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => handlePatch(selectedUser.id, { username: newUsername })}
+              className="w-full bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest h-12 rounded-xl"
+            >
+              Update Username
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Modal */}
+      <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
+        <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-md rounded-[2rem]">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron italic uppercase">Change Password</DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            <Input 
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="New password (min 8 chars)"
+              className="bg-[#050810] border-white/5 rounded-xl h-12"
+            />
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => handlePatch(selectedUser.id, { newPassword: newPassword })}
+              className="w-full bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest h-12 rounded-xl"
+            >
+              Update Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Duration Selector Modal */}
       <Dialog open={durationModalOpen} onOpenChange={setDurationModalOpen}>
         <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-md rounded-[2.5rem] p-8">
           <DialogHeader>
             <DialogTitle className="font-orbitron italic uppercase text-xl">Set Membership Duration</DialogTitle>
-            <DialogDescription className="text-[#64748b]">
-              Choose how long this user will have reseller access.
-            </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-2 gap-3 py-8">
@@ -350,13 +444,6 @@ export default function AdminUsersPage() {
               className="w-full bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest h-14 rounded-xl shadow-glow-gold"
             >
               Confirm & Grant Access
-            </Button>
-            <Button 
-              variant="ghost"
-              onClick={() => setDurationModalOpen(false)}
-              className="w-full text-[#64748b] font-bold uppercase tracking-widest text-[10px]"
-            >
-              Cancel
             </Button>
           </div>
         </DialogContent>

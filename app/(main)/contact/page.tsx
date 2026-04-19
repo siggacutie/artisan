@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,10 @@ const SUBJECTS = [
 ];
 
 export default function ContactPage() {
+  useEffect(() => {
+    document.title = "Contact Support | ArtisanStore.xyz";
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
