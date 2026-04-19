@@ -3,10 +3,7 @@ import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
+export const dynamic = 'force-dynamic'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB
@@ -37,6 +34,16 @@ export async function POST(req: NextRequest) {
     if (!isJpeg && !isPng && !isWebp) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      console.error('[avatar upload] Supabase credentials missing')
+      return NextResponse.json({ error: 'Storage service misconfigured' }, { status: 500 })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
+    )
 
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
     const fileName = `avatars/${user.id}.${ext}`
