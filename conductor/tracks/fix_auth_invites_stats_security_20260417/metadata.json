@@ -1,0 +1,8 @@
+{
+  "id": "fix_auth_invites_stats_security_20260417",
+  "title": "Fix Reseller Auth, Invitation System, Real Admin Stats & Security Audit",
+  "description": "Fix reseller login issues, invitation system multi-use bug, implement real admin dashboard stats, and perform a security audit/patching.",
+  "status": "in-progress",
+  "priority": "high",
+  "owner": "Gemini CLI"
+}

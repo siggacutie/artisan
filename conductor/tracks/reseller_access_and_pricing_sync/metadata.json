@@ -1,0 +1,8 @@
+{
+  "id": "reseller_access_and_pricing_sync",
+  "title": "Reseller Access and Pricing Sync",
+  "description": "Fixes pricing sync issues, package labels, webhook routing, and implements time-limited reseller access.",
+  "status": "in-progress",
+  "createdAt": "2026-04-18T22:54:00Z",
+  "updatedAt": "2026-04-18T22:54:00Z"
+}

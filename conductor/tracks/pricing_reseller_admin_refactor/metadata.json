@@ -1,0 +1,8 @@
+{
+  "id": "pricing_reseller_admin_refactor",
+  "name": "Dynamic Pricing, Reseller System, and Admin Refactor",
+  "description": "Comprehensive implementation of dynamic currency conversion, reseller rates, geo-restriction, and full admin panel backend.",
+  "status": "completed",
+  "priority": "high",
+  "tags": ["pricing", "reseller", "admin", "security"]
+}

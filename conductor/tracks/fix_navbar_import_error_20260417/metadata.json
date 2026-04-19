@@ -1,0 +1,8 @@
+{
+  "id": "fix_navbar_import_error_20260417",
+  "title": "Fix Navbar Import Runtime Error",
+  "description": "Resolve the 'Element type is invalid' runtime error caused by incorrect import of the Navbar component in MainLayout.",
+  "status": "completed",
+  "priority": "high",
+  "owner": "Gemini CLI"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "promo_carousel_20260405",
+  "name": "Refactor PromoCarousel on landing page",
+  "description": "Dynamically fetch and render banners from the database, including custom elements and positions from contentConfig, ensuring a high-end and flexible promotional tool.",
+  "status": "in-progress",
+  "createdAt": "2026-04-05T16:40:00Z"
+}

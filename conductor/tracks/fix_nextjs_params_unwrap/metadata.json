@@ -1,0 +1,7 @@
+{
+  "id": "fix_nextjs_params_unwrap",
+  "label": "Fix Next.js 15 Sync Dynamic APIs (params unwrap)",
+  "status": "pending",
+  "created_at": "2026-04-07T00:00:00Z",
+  "updated_at": "2026-04-07T00:00:00Z"
+}

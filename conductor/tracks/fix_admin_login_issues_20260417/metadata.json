@@ -1,0 +1,8 @@
+{
+  "id": "fix_admin_login_issues_20260417",
+  "title": "Fix Admin Login Redirection and Secret Error",
+  "description": "Resolve the incorrect redirection to the reseller login page and the 'secretOrPrivateKey must have a value' error in the admin login flow.",
+  "status": "completed",
+  "priority": "high",
+  "owner": "Gemini CLI"
+}

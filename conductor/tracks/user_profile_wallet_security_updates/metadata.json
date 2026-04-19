@@ -1,0 +1,9 @@
+{
+  "id": "user_profile_wallet_security_updates",
+  "title": "User Profile, Wallet Coins, and Security Updates",
+  "description": "Fix PFP visibility/editability, implement Coin currency, fix dashboard navigation, update logos, and security assessment.",
+  "status": "in-progress",
+  "priority": "high",
+  "type": "feature-fix-security",
+  "createdAt": "2026-04-10T00:00:00Z"
+}

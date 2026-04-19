@@ -1,0 +1,8 @@
+{
+  "id": "fix_reseller_login_admin_api_20260417",
+  "title": "Fix Reseller Login and Complete Admin User API",
+  "description": "Resolve the issue where resellers cannot log in because isReseller flag is not set correctly by the admin API. Also complete the missing actions in the admin user API.",
+  "status": "completed",
+  "priority": "high",
+  "owner": "Gemini CLI"
+}
