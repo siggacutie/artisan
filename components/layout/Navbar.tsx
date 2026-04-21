@@ -31,7 +31,11 @@ export default function Navbar() {
           const PROTECTED_ROUTES = ['/games', '/reseller', '/dashboard', '/wallet', '/membership'];
           const isProtected = PROTECTED_ROUTES.some(route => window.location.pathname.startsWith(route));
           if (isProtected) {
-            window.location.href = '/login?reason=session_expired';
+            const hasSessionCookie = document.cookie.includes('reseller_session');
+            const loginUrl = hasSessionCookie 
+              ? '/login?reason=session_expired' 
+              : '/login';
+            window.location.href = loginUrl;
           }
           return;
         }

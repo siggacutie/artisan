@@ -1,47 +1,44 @@
-# Specification — Prompt3 Implementation
+# Specification — Prompt3 Implementation (Updated)
 
-## Overview
-Implement a series of updates and fixes as requested in `prompt3.md`:
-1.  **OTP Email Overhaul:** Transition to Resend SDK and implement high-quality HTML templates for different OTP types.
-2.  **Avatar Upload Fix:** Improve the profile picture upload logic with better validation, magic byte checking, and correct Supabase storage handling.
-3.  **Admin Membership Control:** Add a "Revoke Membership" feature in the admin panel to immediately expire a user's membership and revoke reseller status.
-4.  **Membership Renewal System:** Implement a full Razorpay-based membership renewal flow for expired users, including order creation and payment verification.
+Update the application according to the instructions in `prompt3.md`.
 
-## Requirements
+## Goals
+1. Fix mobile alignment and spacing on the Games page header.
+2. Fix wallet balance loading, horizontal overflow, and "ADD FUNDS" button styling on the Dashboard.
+3. Update Dashboard API to return necessary summary data.
+4. Provide instructions for setting up the cleanup CRON job.
 
-### Task 1: OTP Email Overhaul
--   **File:** `lib/email.ts`
--   **Implementation:**
-    -   Use `resend` package.
-    -   Define `getEmailHtml` function returning styled HTML for `EMAIL_VERIFY`, `LOGIN_2FA`, and `PASSWORD_RESET`.
-    -   Update `sendOtpEmail` to use the SDK and templates.
-    -   Include dev-mode logging when not in production.
+## Technical Requirements
+- Next.js 14+ App Router.
+- Tailwind CSS 4.0.
+- No `<form>` tags.
+- No `framer-motion` (unless existing and necessary, but avoid adding).
+- Fixed Color Palette:
+  - Background: #050810
+  - Card bg: #0d1120
+  - Gold: #ffd700
+  - Blue: #00c3ff
+  - Success: #22c55e
+  - Muted text: #64748b
 
-### Task 2: Avatar Upload Fix
--   **File:** `app/api/dashboard/avatar/route.ts`
--   **Implementation:**
-    -   Validate file existence and MIME type (JPG, PNG, WebP).
-    -   Validate file size (max 2MB).
-    -   Perform magic byte validation for JPG, PNG, and WebP.
-    -   Use `session.userId` for filename: `${userId}-${Date.now()}.${ext}`.
-    -   Upload to `avatars` bucket in Supabase.
-    -   Update user's `avatarUrl` in database.
+## Changes Needed
 
-### Task 3: Admin Revoke Membership
--   **Files:** `app/(admin)/admin/users/page.tsx`, `app/api/admin/users/[id]/route.ts`
--   **Implementation:**
-    -   **API:** Handle `revokeMembership: true` in PATCH route. Set `membershipExpiresAt` to a past date and `isReseller` to `false`.
-    -   **Frontend:** Add "Revoke Membership" button to user actions. Show a confirmation modal before proceeding.
+### FIX 1: app/(main)/games/page.tsx
+- Stats row: `flex-wrap`, `gap-3`, `items-center`.
+- Badges ("Instant Delivery", "Secure Payments"): `whitespace-nowrap`.
+- "1 GAME AVAILABLE": own block on left.
+- Header section horizontal padding: `px-4` on mobile.
+- Root wrapper: `overflow-hidden`.
 
-### Task 4: Membership Renewal System
--   **Files:** `app/(main)/membership/page.tsx`, `app/api/membership/create-order/route.ts`, `app/api/membership/verify/route.ts`
--   **Implementation:**
-    -   **Create Order API:** Create Razorpay order for 1, 3, 6, or 12 months based on a fixed price map.
-    -   **Verify API:** Verify HMAC signature, calculate new expiry (extending current or starting from now), update user status, and log `MembershipPayment`.
-    -   **Frontend:** Load Razorpay script, implement `handleRenew` flow, and handle success/failure states.
+### FIX 2: app/(main)/dashboard/wallet/page.tsx + app/api/dashboard/summary/route.ts
+- Fetch `/api/dashboard/summary`: `credentials: 'include'`, `cache: 'no-store'`.
+- Loading state: show skeletons or "Loading...".
+- Error state: show "Could not load wallet".
+- API Route: return `walletBalance`, `membershipExpiresAt`, `totalOrders`, `totalSpent`.
+- Balance/Spent display: `Math.floor(x / 1.5) + " coins"`.
+- Horizontal overflow fix: `max-w-full overflow-hidden` on root div and cards.
+- ADD FUNDS button: solid `#ffd700` background, dark text, no gradient/glow.
+- Cards: `w-full max-w-full box-sizing border-box`.
 
-## Constraints
--   Maintain existing color scheme (Gold #ffd700, Dark #050810, etc.).
--   Ensure mobile-first responsiveness.
--   Strictly follow Razorpay security practices (signature verification).
--   Use `Lucide React` icons only.
+### FIX 3: CRON Instructions
+- Output a clear markdown instruction block for manual setup on Ubuntu VPS.

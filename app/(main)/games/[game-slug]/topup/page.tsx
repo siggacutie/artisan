@@ -55,12 +55,9 @@ export default function TopUpPage() {
       .catch(() => toast.error("Failed to load packages"))
       .finally(() => setLoadingPackages(false))
 
-    // Fetch balance
+    // Update balance when user changes
     if (user) {
-      fetch('/api/dashboard/summary')
-        .then(r => r.json())
-        .then(s => setBalance(s.walletBalance ?? 0))
-        .catch(err => console.error('Error fetching balance:', err))
+      setBalance(user.walletBalance ?? 0)
     }
   }, [user])
 

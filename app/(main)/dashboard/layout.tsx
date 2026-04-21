@@ -124,8 +124,8 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-grow overflow-y-auto bg-[#050810] relative">
-          <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-8">
+        <main className="flex-grow overflow-y-auto bg-[#050810] relative max-w-full overflow-x-hidden">
+          <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-8 w-full">
             {/* Mobile Header & Tabs */}
             <div className="md:hidden space-y-6">
               <div className="flex items-center justify-between">

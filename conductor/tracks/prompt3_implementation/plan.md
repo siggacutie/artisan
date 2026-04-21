@@ -1,26 +1,19 @@
-# Implementation Plan — Prompt3 Implementation
+# Implementation Plan — Prompt3 Implementation (Updated)
 
-## Phase 1: Email OTP Update
-- [ ] Update `lib/email.ts` with new Resend SDK implementation and HTML templates.
-- [ ] Verify `RESEND_API_KEY` is present in environment variables.
+## Phase 1: Games Page (FIX 1)
+- [ ] Modify `app/(main)/games/page.tsx` for mobile alignment and overflow.
+- [ ] Verify badges have `whitespace-nowrap` and row uses `flex-wrap gap-3`.
 
-## Phase 2: Avatar Upload Fix
-- [ ] Update `app/api/dashboard/avatar/route.ts` with improved validation and magic byte checks.
-- [ ] Ensure filename follows `${userId}-${Date.now()}.${ext}` format.
-- [ ] Verify Supabase credentials in environment.
+## Phase 2: Dashboard API (FIX 2 - Part 1)
+- [ ] Update `app/api/dashboard/summary/route.ts` to return `totalSpent`.
+- [ ] Ensure `totalSpent` is calculated correctly from PAID orders.
 
-## Phase 3: Admin Membership Revocation
-- [ ] Modify `app/api/admin/users/[id]/route.ts` to handle `revokeMembership: true`.
-- [ ] Update `app/(admin)/admin/users/page.tsx` to include the "Revoke Membership" button and confirmation modal.
+## Phase 3: Dashboard UI (FIX 2 - Part 2)
+- [ ] Update `app/(main)/dashboard/wallet/page.tsx` fetch call with credentials and cache options.
+- [ ] Implement loading and error states.
+- [ ] Format balances as "coins" using the 1.5 divisor.
+- [ ] Style ADD FUNDS button and fix horizontal overflow issues.
 
-## Phase 4: Membership Renewal System
-- [ ] Create `app/api/membership/create-order/route.ts` for Razorpay order generation.
-- [ ] Create `app/api/membership/verify/route.ts` for payment signature verification and membership extension.
-- [ ] Update `app/(main)/membership/page.tsx` to integrate Razorpay renewal flow.
-
-## Phase 5: Verification & Cleanup
-- [ ] Test email sending in dev mode.
-- [ ] Test avatar upload with various file types and sizes.
-- [ ] Test admin membership revocation and verify user access is blocked.
-- [ ] Test membership renewal flow (can be tested with Razorpay Test Mode).
-- [ ] Ensure all modified files adhere to project coding standards.
+## Phase 4: Verification & Instructions
+- [ ] Verify all changes against the checklist in `prompt3.md`.
+- [ ] Generate CRON job setup instructions.

@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 export default function WalletPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const router = useRouter()
   const [summary, setSummary] = useState<any>(null);
 
@@ -34,25 +35,44 @@ export default function WalletPage() {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    fetch('/api/dashboard/summary')
-      .then(r => r.json())
-      .then(s => {
-        setSummary(s);
+    setError(false);
+    fetch('/api/dashboard/summary', { credentials: 'include', cache: 'no-store' })
+      .then(async r => {
+        if (!r.ok) throw new Error('Failed to fetch');
+        const data = await r.json();
+        setSummary(data);
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching dashboard summary:', err);
+        setError(true);
         setLoading(false);
       });
   }, [user]);
 
+  if (error) {
+    return (
+      <div className="bg-[#0d1120] border border-red-500/20 p-8 rounded-2xl text-center">
+        <p className="text-red-500 font-bold">Could not load wallet</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 text-gold text-xs font-bold uppercase tracking-widest underline"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   const inrBalance = summary?.walletBalance ?? 0;
   const coinBalance = Math.floor(inrBalance / 1.5);
+  const totalSpentInr = summary?.totalSpent ?? 0;
+  const totalSpentCoins = Math.floor(totalSpentInr / 1.5);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-full overflow-hidden">
       {/* Balance Card */}
-      <div className="relative overflow-hidden bg-[#0d1120] border border-gold/20 rounded-2xl p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] group">
+      <div className="relative overflow-hidden bg-[#0d1120] border border-gold/20 rounded-2xl p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] group w-full max-w-full box-sizing-border-box">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-4">
@@ -62,7 +82,7 @@ export default function WalletPage() {
             </div>
             <div>
               {loading ? (
-                <div className="bg-[#0d1120] border border-white/5 rounded-lg h-[80px] w-[200px] animate-pulse-fast mb-2" />
+                <div className="bg-[#050810] border border-white/5 rounded-lg h-[80px] w-[200px] animate-pulse-fast mb-2" />
               ) : (
                 <div className="flex flex-col">
                   <div className="flex items-center gap-4">
@@ -84,7 +104,7 @@ export default function WalletPage() {
 
           <div className="w-full md:w-auto space-y-3">
             <Link href="/wallet/add" className="w-full">
-              <Button className="w-full md:w-[200px] h-14 bg-gradient-to-r from-gold to-gold/70 text-black font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-all">
+              <Button className="w-full md:w-[200px] h-14 bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest transition-all hover:bg-[#ffd700]/90 border-none shadow-none">
                 Add Funds
               </Button>
             </Link>
@@ -94,11 +114,19 @@ export default function WalletPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <div className="bg-black/40 border border-white/5 px-4 py-2 rounded-full flex items-center space-x-2">
             <span className="text-gray-400 text-sm font-bold uppercase tracking-widest">Total Spent:</span>
-            <span className="text-white text-xs font-bold">0 coins</span>
+            {loading ? (
+              <div className="w-12 h-4 bg-white/5 animate-pulse rounded" />
+            ) : (
+              <span className="text-white text-xs font-bold">{totalSpentCoins} coins</span>
+            )}
           </div>
           <div className="bg-black/40 border border-white/5 px-4 py-2 rounded-full flex items-center space-x-2">
             <span className="text-gray-400 text-sm font-bold uppercase tracking-widest">Orders:</span>
-            <span className="text-white text-xs font-bold">{summary?.orderCount ?? 0}</span>
+            {loading ? (
+              <div className="w-8 h-4 bg-white/5 animate-pulse rounded" />
+            ) : (
+              <span className="text-white text-xs font-bold">{summary?.orderCount ?? 0}</span>
+            )}
           </div>
         </div>
       </div>

@@ -35,11 +35,11 @@ export default function GamesPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-[#050810] text-white font-inter">
+    <div className="min-h-screen bg-[#050810] text-white font-inter overflow-hidden">
       <Navbar />
       
       {/* PAGE HEADER */}
-      <section className="bg-[#0a0f1e] pt-32 pb-10 px-6">
+      <section className="bg-[#0a0f1e] pt-32 pb-10 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-gold font-orbitron text-[11px] tracking-[3px] uppercase mb-2">
             CATALOGUE
@@ -52,20 +52,16 @@ export default function GamesPage() {
           </p>
           
           {/* Stats Row */}
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-5 overflow-hidden">
-            <div className="flex flex-col">
+          <div className="flex flex-wrap items-center gap-3 mt-5">
+            <div className="flex flex-col pr-4 border-r border-white/5">
               <span className="text-white font-orbitron text-lg font-bold">1</span>
-              <span className="text-[#475569] font-inter text-[10px] md:text-[11px] uppercase tracking-wider">Game Available</span>
+              <span className="text-[#475569] font-inter text-[10px] md:text-[11px] uppercase tracking-wider whitespace-nowrap">Game Available</span>
             </div>
-            
-            <div className="hidden md:block w-px h-8 bg-white/5" />
             
             <div className="flex items-center gap-2 whitespace-nowrap">
               <Zap size={14} className="text-[#22c55e]" />
               <span className="text-[#22c55e] font-inter text-xs md:text-sm font-medium">Instant Delivery</span>
             </div>
-            
-            <div className="hidden md:block w-px h-8 bg-white/5" />
             
             <div className="flex items-center gap-2 whitespace-nowrap">
               <Shield size={14} className="text-gold" />

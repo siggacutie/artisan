@@ -29,6 +29,15 @@ export async function GET() {
       where: { userId: user.id }
     })
 
+    const totalSpentResult = await prisma.order.aggregate({
+      where: { 
+        userId: user.id,
+        paymentStatus: 'PAID'
+      },
+      _sum: { totalPrice: true }
+    })
+    const totalSpent = totalSpentResult._sum.totalPrice ?? 0
+
     return NextResponse.json({
       walletBalance: userData?.walletBalance ?? 0,
       name: userData?.name,
@@ -40,6 +49,7 @@ export async function GET() {
       isReseller: userData?.isReseller,
       isFrozen: userData?.isFrozen,
       isBanned: userData?.isBanned,
+      totalSpent,
       orderCount
     })
   } catch (error) {
