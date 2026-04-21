@@ -1,0 +1,8 @@
+{
+  "id": "prompt3_implementation",
+  "title": "Email OTP, Avatar Fix, Admin Revoke, and Membership Renewal",
+  "description": "Implementation of tasks from prompt3.md: beautiful OTP emails, profile picture upload fix, admin membership revocation, and Razorpay membership renewal.",
+  "status": "in-progress",
+  "priority": "high",
+  "owner": "Gemini CLI"
+}

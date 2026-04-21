@@ -221,9 +221,9 @@ export default function GameLandingPage({ params }: { params: Promise<{ "game-sl
                         <span className="text-2xl font-black font-heading">{amount}</span>
                         <Gem size={12} className="text-gold" />
                       </div>
-                      <span className="text-xs font-black text-gold">₹{Math.round(amount * 1.5)}</span>
+                      <span className="text-xs font-black text-gold">{amount} coins</span>
                     </div>
-                    <p className="text-[10px] font-black uppercase text-green-500 tracking-widest">Save ₹{Math.round(amount * 0.2)}</p>
+                    <p className="text-[10px] font-black uppercase text-green-500 tracking-widest">Save {Math.ceil(amount * 0.2 / 1.5)} coins</p>
                   </div>
                 ))}
               </div>

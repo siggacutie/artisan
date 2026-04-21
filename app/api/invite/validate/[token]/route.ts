@@ -23,7 +23,8 @@ export async function GET(
 
     return NextResponse.json({ 
       valid: true, 
-      membershipMonths: invite.membershipMonths ?? 1 
+      membershipMonths: invite.membershipMonths ?? 1,
+      requireEmail: invite.requireEmail
     })
   } catch (error) {
     return NextResponse.json({ valid: false, error: 'Validation failed' }, { status: 500 })

@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/adminAuth'
 import { securityLog } from '@/lib/securityLog'
 
+import { validateOrigin } from '@/lib/validateOrigin'
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

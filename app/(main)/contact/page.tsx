@@ -20,6 +20,7 @@ import {
   MessageCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TawkToWidget } from "@/components/providers/TawkToWidget";
 
 const SUBJECTS = [
   "Diamond Top-Up Issue",
@@ -256,16 +257,16 @@ export default function ContactPage() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full h-16 rounded-2xl bg-gold text-black font-black text-xl uppercase tracking-[0.2em] shadow-2xl shadow-gold/10 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                      className="w-full h-auto py-3 md:py-0 md:h-16 px-6 md:px-0 rounded-2xl bg-gold text-black font-black text-sm md:text-xl uppercase tracking-[0.2em] shadow-2xl shadow-gold/10 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 max-w-full"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
-                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
                           <span>Sending...</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <Send size={20} />
+                          <Send size={18} className="md:w-5 md:h-5" />
                           <span>Send Message</span>
                         </div>
                       )}
@@ -280,6 +281,7 @@ export default function ContactPage() {
       </main>
 
       <MobileBottomNav />
+      <TawkToWidget />
     </div>
   );
 }

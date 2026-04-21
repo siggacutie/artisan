@@ -231,14 +231,14 @@ export default function TopUpPage() {
                         <div
                           key={pkg.id}
                           onClick={() => setSelectedPackage(pkg)}
-                          className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-28 ${
+                          className={`p-3 md:p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-24 md:h-28 ${
                             selectedPackage?.id === pkg.id 
                               ? 'border-[#ffd700] bg-[#ffd700]/5 shadow-[0_0_20px_rgba(255,215,0,0.1)]' 
                               : 'border-white/5 bg-[#0d1120] hover:border-white/20'
                           }`}
                         >
-                          <span className="text-[11px] font-bold text-white uppercase tracking-tight">{pkg.name}</span>
-                          <span className="text-xl font-black font-orbitron text-[#ffd700]">{Math.ceil(pkg.resellerPrice / 1.5)} coins</span>
+                          <span className="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-tight line-clamp-1">{pkg.name}</span>
+                          <span className="text-lg md:text-xl font-black font-orbitron text-[#ffd700]">{Math.ceil(pkg.resellerPrice / 1.5)} coins</span>
                         </div>
                       ))
                     )}
@@ -251,28 +251,28 @@ export default function TopUpPage() {
           {/* Right Column: Checkout */}
           <div className="lg:col-span-5 relative">
             <div className="sticky top-32 space-y-6">
-              <Card className="bg-[#0d1120] border-white/5 rounded-[2.5rem] p-8 space-y-8 shadow-2xl">
-                <h2 className="text-xl font-black font-orbitron uppercase tracking-tighter">Order Summary</h2>
+              <Card className="bg-[#0d1120] border-white/5 rounded-[2.5rem] p-6 md:p-8 space-y-6 md:space-y-8 shadow-2xl">
+                <h2 className="text-lg md:text-xl font-black font-orbitron uppercase tracking-tighter">Order Summary</h2>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Selected Game */}
-                  <div className="flex items-center gap-4 bg-[#050810] p-4 rounded-2xl border border-white/5">
-                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
+                  <div className="flex items-center gap-4 bg-[#050810] p-3 md:p-4 rounded-2xl border border-white/5">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
                        <Image src="/assets/games/mlbb/logo.png" alt="MLBB" width={40} height={40} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Selected Game</span>
+                      <span className="text-[9px] md:text-[10px] font-black text-[#64748b] uppercase tracking-widest">Selected Game</span>
                       <span className="text-xs font-bold text-white uppercase tracking-tight">Mobile Legends</span>
                     </div>
                   </div>
 
                   {/* Delivery Info */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Delivering To</p>
+                  <div className="space-y-1.5 md:space-y-2">
+                    <p className="text-[9px] md:text-[10px] font-black text-[#64748b] uppercase tracking-widest">Delivering To</p>
                     {verifiedUsername ? (
                       <div className="flex flex-col">
-                        <span className="text-lg font-black font-orbitron text-white uppercase tracking-tighter italic">{verifiedUsername}</span>
-                        <span className="text-xs text-[#64748b] font-medium">ID: {userId} ({zoneId})</span>
+                        <span className="text-base md:text-lg font-black font-orbitron text-white uppercase tracking-tighter italic">{verifiedUsername}</span>
+                        <span className="text-[10px] md:text-xs text-[#64748b] font-medium">ID: {userId} ({zoneId})</span>
                       </div>
                     ) : (
                       <p className="text-xs text-[#334155] font-bold italic uppercase tracking-tight">Player not verified</p>
@@ -282,17 +282,17 @@ export default function TopUpPage() {
                   {/* Price Breakdown */}
                   <div className="space-y-4 pt-4 border-t border-white/5">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-[#64748b] uppercase tracking-widest">Selected Package</span>
-                      <span className="text-sm font-bold text-white">{selectedPackage?.name || '—'}</span>
+                      <span className="text-[10px] md:text-xs font-bold text-[#64748b] uppercase tracking-widest">Selected Package</span>
+                      <span className="text-xs md:text-sm font-bold text-white">{selectedPackage?.name || '—'}</span>
                     </div>
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-xs font-black text-[#64748b] uppercase tracking-widest">Total Price</span>
-                        <span className="text-4xl font-black font-orbitron text-white tracking-tighter">{Math.ceil((selectedPackage?.resellerPrice || 0) / 1.5)} coins</span>
+                        <span className="text-[10px] md:text-xs font-black text-[#64748b] uppercase tracking-widest">Total Price</span>
+                        <span className="text-3xl md:text-4xl font-black font-orbitron text-white tracking-tighter">{Math.ceil((selectedPackage?.resellerPrice || 0) / 1.5)} coins</span>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                         <span className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Payment Method</span>
-                         <span className="text-xs font-bold text-white uppercase tracking-tight">Artisan Wallet</span>
+                         <span className="text-[9px] md:text-[10px] font-black text-green-500 uppercase tracking-widest mb-0.5 md:mb-1">Payment Method</span>
+                         <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-tight">Artisan Wallet</span>
                       </div>
                     </div>
                   </div>
@@ -301,7 +301,7 @@ export default function TopUpPage() {
                   <Button
                     onClick={handleBuy}
                     disabled={!verifiedUsername || !selectedPackage || purchasing}
-                    className={`w-full h-16 rounded-2xl font-black text-lg uppercase tracking-[0.2em] shadow-2xl transition-all font-orbitron
+                    className={`w-full h-14 md:h-16 rounded-2xl font-black text-base md:text-lg uppercase tracking-[0.2em] shadow-2xl transition-all font-orbitron
                       ${!verifiedUsername || !selectedPackage 
                         ? 'bg-[#1e2535] text-[#475569] cursor-not-allowed' 
                         : balance < selectedPackage.resellerPrice

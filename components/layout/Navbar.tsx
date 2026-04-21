@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
@@ -19,10 +19,22 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
+  const userDropdownRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/reseller/auth/me', { cache: 'no-store' })
       .then(async r => {
+        if (r.status === 401) {
+          // Session was invalidated (logged out from another device)
+          const PROTECTED_ROUTES = ['/games', '/reseller', '/dashboard', '/wallet', '/membership'];
+          const isProtected = PROTECTED_ROUTES.some(route => window.location.pathname.startsWith(route));
+          if (isProtected) {
+            window.location.href = '/login?reason=session_expired';
+          }
+          return;
+        }
         if (r.ok) {
           const data = await r.json()
           setUser(data)
@@ -34,12 +46,36 @@ export default function Navbar() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      // Close user dropdown if clicking outside
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false)
+      }
+      // Close mobile menu if clicking outside
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        // Only close if it's not the menu button itself (which handles its own click)
+        const target = event.target as HTMLElement
+        if (!target.closest('button[data-mobile-menu-toggle]')) {
+          setIsOpen(false)
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
+    }
+  }, [])
+
   const handleSignOut = async () => {
     try {
       await fetch('/api/reseller/auth/logout', { method: 'POST' })
       router.push('/')
       router.refresh()
       setUser(null)
+      setIsOpen(false)
     } catch (err) {
       console.error('Logout failed:', err)
     }
@@ -143,15 +179,23 @@ export default function Navbar() {
           )}
 
           {user ? (
-            <div className="relative group">
-              <button className="flex items-center gap-3 p-1.5 rounded-2xl border border-white/5 bg-white/5 hover:border-gold/20 transition-all">
-                <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center text-gold border border-gold/20 font-orbitron font-black text-xs uppercase">
-                  {user.username?.[0] ?? <User size={16} />}
-                </div>
-                <ChevronDown size={12} className="text-gray-500 mr-1" />
-              </button>
+            <div className="relative" ref={userDropdownRef}>
+              <div onClick={() => setShowUserDropdown(!showUserDropdown)}>
+                <button 
+                  className="flex items-center gap-3 p-1.5 rounded-2xl border border-white/5 bg-white/5 hover:border-gold/20 transition-all"
+                  type="button"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center text-gold border border-gold/20 font-orbitron font-black text-xs uppercase">
+                    {user.username?.[0] ?? <User size={16} />}
+                  </div>
+                  <ChevronDown size={12} className="text-gray-500 mr-1" />
+                </button>
+              </div>
 
-              <div className="absolute top-full right-0 mt-2 w-56 bg-[#0d1120] border border-white/10 rounded-2xl p-2 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className={cn(
+                "absolute top-full right-0 mt-2 w-56 bg-[#0d1120] border border-white/10 rounded-2xl p-2 shadow-2xl transition-all duration-200 z-50",
+                showUserDropdown ? "opacity-100 visible" : "opacity-0 invisible"
+              )}>
                 <div className="px-4 py-3 border-b border-white/5 mb-2">
                   <p className="text-[10px] font-black text-white uppercase tracking-widest truncate">{user.username}</p>
                   <p className="text-[9px] text-gray-500 truncate">{user.email || 'No email'}</p>
@@ -194,6 +238,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button 
+            data-mobile-menu-toggle
             onClick={() => setIsOpen(!isOpen)} 
             className="md:hidden text-white p-2 hover:bg-white/5 rounded-xl transition-colors"
           >
@@ -206,10 +251,11 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={mobileMenuRef}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-[#050810] border-t border-white/5 overflow-hidden"
+            className="md:hidden bg-[#050810] border-t border-white/5 overflow-hidden shadow-2xl"
           >
             <div className="p-6 space-y-4">
               <Link href="/" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 hover:text-gold uppercase tracking-widest">Home</Link>
@@ -217,12 +263,17 @@ export default function Navbar() {
               <Link href="/reseller" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 hover:text-gold uppercase tracking-widest">Reseller</Link>
               <Link href="/contact" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 hover:text-gold uppercase tracking-widest">Support</Link>
               
+              <div className="h-px bg-white/5 my-4" />
+              
               {user ? (
                 <>
-                  <div className="h-px bg-white/5 my-4" />
+                  <div className="flex items-center justify-between px-4 py-3 bg-white/5 rounded-xl mb-4 border border-white/5">
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Wallet Balance</span>
+                    <span className="text-sm font-black text-gold uppercase tracking-tighter italic">{Math.floor(user.walletBalance / 1.5)} coins</span>
+                  </div>
                   <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 uppercase tracking-widest">Dashboard</Link>
                   <Link href="/dashboard/orders" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 uppercase tracking-widest">Orders</Link>
-                  <button onClick={handleSignOut} className="block text-xs font-black text-red-500 uppercase tracking-widest">Sign Out</button>
+                  <button onClick={() => { handleSignOut(); }} className="block text-xs font-black text-red-500 uppercase tracking-widest text-left w-full pt-2">Sign Out</button>
                 </>
               ) : (
                 <Link href="/login" onClick={() => setIsOpen(false)} className="block text-xs font-black text-gold uppercase tracking-widest">Login</Link>

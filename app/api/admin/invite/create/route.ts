@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminAuth'
 import { prisma } from '@/lib/prisma'
+import { validateOrigin } from '@/lib/validateOrigin'
 
 export async function POST(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   try {
     const admin = await getAdminSession()
     if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const body = await req.json()
     const membershipMonths: number = Number(body.membershipMonths) || 1
+    const requireEmail: boolean = body.requireEmail !== undefined ? Boolean(body.requireEmail) : true
 
     if (![1, 3, 6, 12].includes(membershipMonths)) {
       return NextResponse.json({ error: 'Invalid membership duration' }, { status: 400 })
@@ -23,6 +27,7 @@ export async function POST(req: NextRequest) {
         createdBy: admin.email,
         expiresAt,
         membershipMonths,
+        requireEmail,
       },
     })
 

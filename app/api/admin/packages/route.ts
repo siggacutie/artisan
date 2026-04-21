@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/adminAuth";
+import { validateOrigin } from "@/lib/validateOrigin";
 
 export async function GET() {
   const admin = await getAdminSession();
@@ -18,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -73,6 +76,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

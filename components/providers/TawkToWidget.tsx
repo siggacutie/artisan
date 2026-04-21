@@ -21,5 +21,15 @@ export function TawkToWidget() {
     })()
   }, [])
 
-  return null
+  return (
+    <style jsx global>{`
+      @media (max-width: 768px) {
+        #tawkchat-container, 
+        .tawk-min-container,
+        iframe[title="chat widget"] {
+          bottom: 70px !important;
+        }
+      }
+    `}</style>
+  )
 }

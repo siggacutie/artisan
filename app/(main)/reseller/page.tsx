@@ -38,7 +38,7 @@ export default function ResellerPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Reseller Rate</p>
-                    <p className="text-2xl font-black text-gold font-orbitron italic">₹{pkg.resellerPrice}</p>
+                    <p className="text-2xl font-black text-gold font-orbitron italic">{Math.ceil(pkg.resellerPrice / 1.5)} coins</p>
                   </div>
                 </div>
 

@@ -22,15 +22,17 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id                   String              @id @default(cuid())
   username             String?             @unique
   email                String?             @unique
+  emailVerified        Boolean             @default(false)
+  emailDisabled        Boolean             @default(false)
+  twoFactorPending     Boolean             @default(false)
   passwordHash         String?
   name                 String?
   role                 Role                @default(RESELLER)
@@ -51,6 +53,7 @@ model User {
   isFrozen             Boolean             @default(false)
   lastSeenAt           DateTime?
   isReseller           Boolean             @default(false)
+  otpCodes             OtpCode[]
   resellerSession      ResellerSession?
   accountsPurchased    AccountListing[]    @relation("SoldToUser")
   loginHistory         LoginHistory[]
@@ -65,8 +68,21 @@ model ResellerSession {
   token     String   @unique @default(cuid())
   ip        String?
   userAgent String?
+  lastSeen  DateTime?
+  expiresAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  type      String   // EMAIL_VERIFY | LOGIN_2FA | PASSWORD_RESET
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -115,7 +131,6 @@ model LoginHistory {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 model InviteLink {
   id              String    @id @default(cuid())
   token           String    @unique @default(cuid())
@@ -125,6 +140,7 @@ model InviteLink {
   expiresAt       DateTime
   isUsed          Boolean   @default(false)
   membershipMonths Int      @default(1)
+  requireEmail    Boolean   @default(true)
   createdAt       DateTime  @default(now())
 }
 

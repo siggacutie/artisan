@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       activeUsersCount,
       pendingOrdersCount,
       resellerCount,
+      activeResellersCount,
       ordersByStatusData,
       recentOrders
     ] = await Promise.all([
@@ -72,6 +73,15 @@ export async function GET(req: NextRequest) {
       prisma.user.count({
         where: { role: 'RESELLER' }
       }),
+      // Active Resellers
+      prisma.user.count({
+        where: { 
+          isReseller: true, 
+          isBanned: false, 
+          isFrozen: false, 
+          membershipExpiresAt: { gt: new Date() } 
+        }
+      }),
       // Orders by Status
       prisma.order.groupBy({
         by: ['orderStatus'],
@@ -109,6 +119,7 @@ export async function GET(req: NextRequest) {
       activeUsers: activeUsersCount,
       pendingOrders: pendingOrdersCount,
       resellerCount,
+      activeResellers: activeResellersCount,
       ordersByStatus,
       recentOrders: recentOrders.map(o => ({
         id: o.id,

@@ -11,6 +11,7 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function GamesPage() {
   const router = useRouter();
@@ -38,117 +39,72 @@ export default function GamesPage() {
       <Navbar />
       
       {/* PAGE HEADER */}
-      <section style={{ backgroundColor: '#0a0f1e', padding: '120px 24px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ 
-            color: '#ffd700', 
-            fontFamily: 'Orbitron', 
-            fontSize: '11px', 
-            letterSpacing: '3px', 
-            textTransform: 'uppercase', 
-            marginBottom: '8px' 
-          }}>
+      <section className="bg-[#0a0f1e] pt-32 pb-10 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-gold font-orbitron text-[11px] tracking-[3px] uppercase mb-2">
             CATALOGUE
           </div>
-          <h1 style={{ 
-            color: '#ffffff', 
-            fontFamily: 'Orbitron', 
-            fontSize: '36px', 
-            fontWeight: 700,
-            margin: 0
-          }}>
+          <h1 className="text-white font-orbitron text-3xl md:text-4xl font-bold m-0">
             All Games
           </h1>
-          <p style={{ 
-            color: '#64748b', 
-            fontFamily: 'Inter', 
-            fontSize: '14px', 
-            marginTop: '8px',
-            marginRight: 0,
-            marginBottom: 0,
-            marginLeft: 0
-          }}>
-            Top up credits and buy accounts for your favorite games.
+          <p className="text-[#64748b] font-inter text-sm mt-2">
+            Top up credits for your favorite games instantly.
           </p>
           
           {/* Stats Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: 700 }}>1</span>
-              <span style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>Game Available</span>
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-5 overflow-hidden">
+            <div className="flex flex-col">
+              <span className="text-white font-orbitron text-lg font-bold">1</span>
+              <span className="text-[#475569] font-inter text-[10px] md:text-[11px] uppercase tracking-wider">Game Available</span>
             </div>
             
-            <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <div className="hidden md:block w-px h-8 bg-white/5" />
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Zap size={14} color="#22c55e" />
-              <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '13px', fontWeight: 500 }}>Instant Delivery</span>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Zap size={14} className="text-[#22c55e]" />
+              <span className="text-[#22c55e] font-inter text-xs md:text-sm font-medium">Instant Delivery</span>
             </div>
             
-            <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <div className="hidden md:block w-px h-8 bg-white/5" />
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Shield size={14} color="#ffd700" />
-              <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '13px', fontWeight: 500 }}>Secure Payments</span>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Shield size={14} className="text-gold" />
+              <span className="text-gold font-inter text-xs md:text-sm font-medium">Secure Payments</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* SEARCH AND FILTER BAR */}
-      <section style={{ padding: '32px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'row', 
-          flexWrap: 'wrap',
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          gap: '24px' 
-        }}>
+      <section className="py-8 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* Search Input */}
-          <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+          <div className="relative w-full max-w-md">
             <Search 
-              style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} 
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]" 
               size={18} 
-              color="#334155" 
             />
             <input 
               type="text"
               placeholder="Search games..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#0d1120',
-                border: '1px solid rgba(255,215,0,0.1)',
-                borderRadius: '10px',
-                padding: '12px 16px 12px 44px',
-                color: '#ffffff',
-                fontFamily: 'Inter',
-                fontSize: '14px',
-                outline: 'none'
-              }}
+              className="w-full bg-[#0d1120] border border-gold/10 rounded-xl py-3 pl-11 pr-4 text-white font-inter text-sm outline-none focus:border-gold/30 transition-all"
             />
           </div>
 
           {/* Filter Tabs */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {['ALL', 'TOP UP', 'ACCOUNTS'].map((t) => (
+          <div className="flex gap-2">
+            {['ALL', 'TOP UP'].map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
-                style={{
-                  backgroundColor: filter === t ? '#ffd700' : 'transparent',
-                  color: filter === t ? '#050810' : '#64748b',
-                  border: filter === t ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '20px',
-                  padding: '6px 18px',
-                  fontFamily: 'Inter',
-                  fontSize: '13px',
-                  fontWeight: filter === t ? 700 : 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
+                className={cn(
+                  "px-5 py-2 rounded-full font-inter text-xs md:text-sm font-bold transition-all border",
+                  filter === t 
+                    ? "bg-gold text-[#050810] border-transparent" 
+                    : "bg-transparent text-[#64748b] border-white/5 hover:border-white/20"
+                )}
               >
                 {t}
               </button>
@@ -157,179 +113,54 @@ export default function GamesPage() {
         </div>
 
         {/* GAMES GRID */}
-        <div style={{ marginTop: '32px' }}>
+        <div className="mt-8">
           {/* MLBB GAME CARD */}
-          {(filter === 'ALL' || filter === 'TOP UP') && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div 
               onClick={() => router.push('/games/mobile-legends/topup')}
-              style={{
-                position: 'relative',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,215,0,0.15)',
-                height: '240px',
-                cursor: 'pointer',
-                marginBottom: '16px'
-              }}
-              className="group"
+              className="relative rounded-2xl overflow-hidden border border-gold/15 h-[240px] cursor-pointer group"
             >
               {/* Background Image */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: "url('/assets/games/mlbb/bg.jpg')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center top',
-                transition: 'transform 0.5s ease'
-              }} className="group-hover:scale-105" />
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                style={{ backgroundImage: "url('/assets/games/mlbb/bg.jpg')" }}
+              />
               
               {/* Dark Overlay */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to right, rgba(5,8,16,0.92) 0%, rgba(5,8,16,0.7) 50%, rgba(5,8,16,0.2) 100%)'
-              }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#050810]/95 via-[#050810]/80 to-transparent" />
 
               {/* Content */}
-              <div style={{ position: 'relative', zIndex: 1, padding: '32px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div className="relative z-10 p-6 md:p-10 h-full flex flex-col justify-center">
                 <img 
                   src="/assets/games/mlbb/logo.png" 
                   alt="MLBB" 
-                  style={{ width: '48px', height: '48px', borderRadius: '10px', marginBottom: '12px' }} 
+                  className="w-12 h-12 rounded-xl mb-4" 
                 />
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: 700, margin: 0 }}>
-                    Mobile Legends Bang Bang
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-white font-orbitron text-xl md:text-2xl font-bold m-0">
+                    Mobile Legends
                   </h2>
-                  <span style={{ 
-                    color: '#ffd700', 
-                    fontFamily: 'Inter', 
-                    fontSize: '11px', 
-                    fontWeight: 600, 
-                    backgroundColor: 'rgba(255,215,0,0.1)', 
-                    borderRadius: '4px', 
-                    padding: '3px 8px' 
-                  }}>
+                  <span className="text-gold font-inter text-[10px] font-bold bg-gold/10 rounded px-2 py-1">
                     MOBA
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '11px', fontWeight: 600, letterSpacing: '1px' }}>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
+                  <span className="text-[#22c55e] font-inter text-[10px] font-bold tracking-widest">
                     ACTIVE
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                  <button style={{
-                    backgroundColor: '#ffd700',
-                    color: '#050810',
-                    fontFamily: 'Inter',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    padding: '9px 20px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
+                <div className="mt-6">
+                  <button className="bg-gold text-[#050810] font-inter text-xs md:text-sm font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all hover:bg-gold/90">
                     <Zap size={14} />
                     Top Up
                   </button>
-
-                  <div style={{ position: 'relative' }} className="group/btn">
-                    <button 
-                      disabled
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: '#64748b',
-                        fontFamily: 'Inter',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        padding: '9px 20px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        cursor: 'not-allowed',
-                        opacity: 0.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      <Package size={14} />
-                      Accounts
-                    </button>
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      marginBottom: '8px',
-                      backgroundColor: '#0d1120',
-                      color: '#ffffff',
-                      fontSize: '10px',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      whiteSpace: 'nowrap',
-                      opacity: 0,
-                      pointerEvents: 'none',
-                      transition: 'opacity 0.2s'
-                    }} className="group-hover/btn:opacity-100">
-                      Coming Soon
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* COMING SOON CARDS GRID */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '16px',
-            marginTop: '16px' 
-          }}>
-            {[1, 2, 3].map((i) => (
-              <div 
-                key={i}
-                style={{
-                  height: '160px',
-                  backgroundColor: '#0d1120',
-                  border: '1px solid rgba(255,255,255,0.04)',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px'
-                }}
-              >
-                <Gamepad2 size={28} color="#1e2535" />
-                <div style={{ color: '#1e2535', fontFamily: 'Inter', fontSize: '13px', fontWeight: 600 }}>
-                  Coming Soon
-                </div>
-                <div style={{ color: '#0f1520', fontFamily: 'Inter', fontSize: '11px' }}>
-                  New title
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* BOTTOM NOTE */}
-          <div style={{ 
-            color: '#334155', 
-            fontFamily: 'Inter', 
-            fontSize: '13px', 
-            textAlign: 'center', 
-            marginTop: '32px', 
-            marginBottom: '32px' 
-          }}>
-            More games are added regularly. Follow us for updates.
           </div>
         </div>
       </section>

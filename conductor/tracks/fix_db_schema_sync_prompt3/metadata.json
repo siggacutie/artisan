@@ -1,0 +1,9 @@
+{
+  "id": "fix_db_schema_sync_prompt3",
+  "title": "Fix Database Schema Mismatch (Prompt 3)",
+  "description": "Fix the 'insufficient data left in message' error by manually syncing the PostgreSQL database schema with the Prisma schema as per prompt3.md instructions.",
+  "status": "todo",
+  "priority": "high",
+  "owner": "Gemini CLI",
+  "createdAt": "2026-04-21T03:10:00Z"
+}

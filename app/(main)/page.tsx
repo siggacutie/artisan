@@ -136,7 +136,7 @@ export default function HomePage() {
             {filteredPackages.map((pkg) => (
               <div key={pkg.id} className="bg-[#0d1120] border border-white/5 rounded-2xl p-6 flex justify-between items-center hover:border-gold/20 transition-all">
                 <div className="text-sm font-bold text-white uppercase tracking-tight">{pkg.name}</div>
-                <div className="text-xl font-black font-orbitron text-gold">₹{pkg.resellerPrice}</div>
+                <div className="text-xl font-black font-orbitron text-gold">{Math.ceil(pkg.resellerPrice / 1.5)} coins</div>
               </div>
             ))}
           </div>

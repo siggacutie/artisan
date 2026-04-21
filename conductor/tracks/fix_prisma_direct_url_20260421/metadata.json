@@ -1,0 +1,9 @@
+{
+  "id": "fix_prisma_direct_url_20260421",
+  "title": "Fix Prisma Direct URL Connection Error",
+  "description": "Remove directUrl from prisma/schema.prisma to fix write operation failures (PostgresError 08P01) caused by unreachable direct connection.",
+  "status": "todo",
+  "priority": "high",
+  "owner": "Gemini CLI",
+  "createdAt": "2026-04-21T03:25:00Z"
+}

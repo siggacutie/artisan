@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminAuth'
 import { prisma } from '@/lib/prisma'
+import { validateOrigin } from '@/lib/validateOrigin'
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   try {
     const admin = await getAdminSession()
     if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -24,6 +26,36 @@ export async function PATCH(
     if (typeof body.isReseller === 'boolean') updateData.isReseller = body.isReseller
     if (typeof body.adminNote === 'string') updateData.adminNote = body.adminNote
     if (typeof body.walletBalance === 'number') updateData.walletBalance = body.walletBalance
+    if (typeof body.emailDisabled === 'boolean') updateData.emailDisabled = body.emailDisabled
+
+    // Handle manual membership revocation
+    if (body.revokeMembership === true) {
+      const pastDate = new Date('2000-01-01')
+      const updated = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          membershipExpiresAt: pastDate,
+          isReseller: false,
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          name: true,
+          role: true,
+          isReseller: true,
+          isBanned: true,
+          isFrozen: true,
+          walletBalance: true,
+          membershipExpiresAt: true,
+          membershipMonths: true,
+          adminNote: true,
+          createdAt: true,
+          lastSeenAt: true,
+        }
+      })
+      return NextResponse.json({ success: true, user: updated })
+    }
 
     // Change username
     if (typeof body.username === 'string') {
@@ -60,6 +92,22 @@ export async function PATCH(
     const updated = await prisma.user.update({
       where: { id: userId },
       data: updateData,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        role: true,
+        isReseller: true,
+        isBanned: true,
+        isFrozen: true,
+        walletBalance: true,
+        membershipExpiresAt: true,
+        membershipMonths: true,
+        adminNote: true,
+        createdAt: true,
+        lastSeenAt: true,
+      }
     })
 
     return NextResponse.json({ success: true, user: updated })
@@ -110,11 +158,17 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   try {
     const admin = await getAdminSession()
     if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const { id: userId } = await params
+
+    if (admin.id === userId) {
+      return NextResponse.json({ error: 'You cannot delete your own account' }, { status: 400 })
+    }
+
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 

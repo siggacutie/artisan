@@ -77,10 +77,10 @@ export default function AdminDashboard() {
       href: "/admin/payments"
     },
     { 
-      label: "Active Users", 
-      value: data?.activeUsers?.toString() || "0", 
+      label: "Active Resellers", 
+      value: data?.activeResellers?.toString() || "0", 
       unit: "", 
-      trend: `${data?.todayUsers || 0} new today`, 
+      trend: `${data?.resellerCount || 0} total`, 
       icon: Users, 
       color: "text-green-400",
       bg: "bg-green-400/10"
@@ -107,7 +107,6 @@ export default function AdminDashboard() {
 
   const quickActions = [
     { label: "Add Package", icon: Gem, href: "/admin/packages", color: "text-gold" },
-    { label: "Add Account", icon: User, href: "/admin/accounts", color: "text-gold" },
     { label: "Approve Payments", icon: CreditCard, href: "/admin/payments", color: "text-orange-400", badge: data?.pendingApprovals > 0 ? data.pendingApprovals.toString() : null },
     { label: "Create Coupon", icon: Tag, href: "/admin/coupons", color: "text-gold" },
   ];

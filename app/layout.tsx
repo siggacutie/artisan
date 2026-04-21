@@ -26,8 +26,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ArtisanStore.xyz — Cheapest MLBB Diamond Top-Ups",
-  description: "ArtisanStore.xyz is a dark-themed mobile-first e-commerce platform for gaming top-ups.",
+  title: "Artisanstore.xyz - Cheapest Reseller Panel",
+  description: "Artisanstore is a global game store for fast top-ups, in-game currency and a lot more to come. We offer the cheapest rates in the market for multiple games.",
+  icons: {
+    icon: [{ url: "/artisan.png", type: "image/png" }],
+    shortcut: "/artisan.png",
+    apple: "/artisan.png",
+  },
 };
 
 export default function RootLayout({

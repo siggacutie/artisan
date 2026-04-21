@@ -1,0 +1,10 @@
+{
+  "id": "fix_invite_signup_syntax_20260421",
+  "title": "Fix Invite Signup Syntax Error",
+  "description": "Fix a stray brace and malformed data object in the invite signup route that caused PostgresError 08P01.",
+  "status": "completed",
+  "priority": "high",
+  "owner": "Gemini CLI",
+  "createdAt": "2026-04-21T03:31:00Z",
+  "completedAt": "2026-04-21T03:32:00Z"
+}

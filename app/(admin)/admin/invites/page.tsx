@@ -5,11 +5,57 @@ import { Loader2, Copy, Plus, CheckCircle2, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 
+function Toggle({ value, onChange, labelOn, labelOff }: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  labelOn: string;
+  labelOff: string;
+}) {
+  return (
+    <div
+      onClick={() => onChange(!value)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+    >
+      <div style={{
+        width: '40px',
+        height: '22px',
+        borderRadius: '11px',
+        background: value ? '#22c55e' : '#ef4444',
+        position: 'relative',
+        transition: 'background 0.2s',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '3px',
+          left: value ? '21px' : '3px',
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          background: '#fff',
+          transition: 'left 0.2s',
+        }} />
+      </div>
+      <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600' }}>
+        {value ? labelOn : labelOff}
+      </span>
+    </div>
+  );
+}
+
 export default function AdminInvitesPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [clearingInvites, setClearingInvites] = useState(false)
+  const [clearingUsers, setClearingUsers] = useState(false)
   const [invites, setInvites] = useState<any[]>([])
   const [selectedMonths, setSelectedMonths] = useState(1)
+  const [requireEmail, setRequireEmail] = useState(true)
   const [newLink, setNewLink] = useState('')
   const [newInviteData, setNewInviteData] = useState<any>(null)
   const [copied, setCopied] = useState(false)
@@ -41,6 +87,45 @@ export default function AdminInvitesPage() {
     fetchInvites()
   }, [])
 
+  const handleClearInvites = async () => {
+    if (!confirm("Are you sure? This will delete all used and expired invite links. This cannot be undone.")) return
+    
+    setClearingInvites(true)
+    try {
+      const res = await fetch('/api/admin/invite/clear-expired', { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(`Successfully cleared ${data.deleted} invites`)
+        fetchInvites()
+      } else {
+        toast.error(data.error || 'Failed to clear invites')
+      }
+    } catch (error) {
+      toast.error('Failed to clear invites')
+    } finally {
+      setClearingInvites(false)
+    }
+  }
+
+  const handleClearUsers = async () => {
+    if (!confirm("Are you sure? This will permanently delete users whose membership expired more than 3 days ago and are frozen. This cannot be undone.")) return
+    
+    setClearingUsers(true)
+    try {
+      const res = await fetch('/api/admin/users/clear-expired', { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(`Successfully deleted ${data.deleted} expired users`)
+      } else {
+        toast.error(data.error || 'Failed to clear users')
+      }
+    } catch (error) {
+      toast.error('Failed to clear users')
+    } finally {
+      setClearingUsers(false)
+    }
+  }
+
   const handleGenerate = async () => {
     setCreating(true)
     setNewLink('')
@@ -50,7 +135,7 @@ export default function AdminInvitesPage() {
       const res = await fetch('/api/admin/invite/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ membershipMonths: selectedMonths })
+        body: JSON.stringify({ membershipMonths: selectedMonths, requireEmail })
       })
       const data = await res.json()
       if (data.link) {
@@ -87,31 +172,64 @@ export default function AdminInvitesPage() {
     <div className="min-h-screen bg-[#050810] text-white p-8 font-inter">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
-        <div className="border-l-4 border-[#ffd700] pl-6">
-          <h1 className="text-3xl font-black font-orbitron uppercase tracking-tighter italic">Reseller Invites</h1>
-          <p className="text-sm text-[#64748b] mt-1 font-medium">Generate and manage reseller invitation links.</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-l-4 border-[#ffd700] pl-6">
+          <div>
+            <h1 className="text-3xl font-black font-orbitron uppercase tracking-tighter italic">Reseller Invites</h1>
+            <p className="text-sm text-[#64748b] mt-1 font-medium">Generate and manage reseller invitation links.</p>
+          </div>
+          
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={handleClearInvites}
+              disabled={clearingInvites}
+              className="bg-transparent border border-[rgba(255,215,0,0.2)] hover:border-red-500/50 hover:text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+            >
+              {clearingInvites ? 'Clearing...' : 'Clear Expired Invites'}
+            </button>
+            <button
+              onClick={handleClearUsers}
+              disabled={clearingUsers}
+              className="bg-transparent border border-[rgba(255,215,0,0.2)] hover:border-red-500/50 hover:text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+            >
+              {clearingUsers ? 'Clearing...' : 'Clear Expired Users'}
+            </button>
+          </div>
         </div>
 
         {/* Section 1: Generate Link Form */}
         <div className="bg-[#0d1120] border border-[rgba(255,215,0,0.1)] rounded-3xl p-8 space-y-6 shadow-2xl">
           <h2 className="text-xl font-black font-orbitron uppercase tracking-tighter text-white">Generate Invite Link</h2>
           
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Membership Duration</p>
-            <div className="flex flex-wrap gap-3">
-              {durations.map((d) => (
-                <div
-                  key={d.value}
-                  onClick={() => setSelectedMonths(d.value)}
-                  className={`px-6 py-3 rounded-xl border cursor-pointer font-bold text-sm transition-all ${
-                    selectedMonths === d.value 
-                      ? 'border-[#ffd700] bg-[rgba(255,215,0,0.1)] text-[#ffd700]' 
-                      : 'border-[rgba(255,215,0,0.1)] bg-[#0d1120] text-[#64748b] hover:border-[#ffd700]/30'
-                  }`}
-                >
-                  {d.label}
-                </div>
-              ))}
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Membership Duration</p>
+              <div className="flex flex-wrap gap-3">
+                {durations.map((d) => (
+                  <div
+                    key={d.value}
+                    onClick={() => setSelectedMonths(d.value)}
+                    className={`px-6 py-3 rounded-xl border cursor-pointer font-bold text-sm transition-all ${
+                      selectedMonths === d.value 
+                        ? 'border-[#ffd700] bg-[rgba(255,215,0,0.1)] text-[#ffd700]' 
+                        : 'border-[rgba(255,215,0,0.1)] bg-[#0d1120] text-[#64748b] hover:border-[#ffd700]/30'
+                    }`}
+                  >
+                    {d.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Sign-up Verification</p>
+              <div className="p-1">
+                <Toggle 
+                  value={requireEmail}
+                  onChange={setRequireEmail}
+                  labelOn="Email Required"
+                  labelOff="Email Optional"
+                />
+              </div>
             </div>
           </div>
 
@@ -123,6 +241,10 @@ export default function AdminInvitesPage() {
             {creating ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus size={18} />}
             Generate Link
           </button>
+
+          <p className="text-[#64748b] font-inter text-[12px]">
+            Resellers must provide a verified email during signup.
+          </p>
 
           {error && <p className="text-[#ef4444] text-xs font-bold uppercase tracking-tight">{error}</p>}
 

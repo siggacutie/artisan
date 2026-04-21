@@ -1,0 +1,9 @@
+{
+  "id": "fix_db_schema_mismatch_20260421",
+  "title": "Fix Database Schema Mismatch (User, ResellerSession, InviteLink, OtpCode)",
+  "description": "Resolve PostgresError 08P01 by adding missing columns to User, ResellerSession, and InviteLink tables, and creating the OtpCode table to match the Prisma schema.",
+  "status": "in-progress",
+  "priority": "critical",
+  "owner": "Gemini",
+  "createdAt": "2026-04-21T02:57:00Z"
+}

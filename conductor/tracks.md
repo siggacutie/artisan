@@ -54,3 +54,13 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/surgical_fixes_20260419/](./tracks/surgical_fixes_20260419/)*
 - [x] **Track: Coin Conversion System (1.5 INR = 1 Coin)**
   *Link: [./tracks/coin_conversion_system_20260419_v2/](./tracks/coin_conversion_system_20260419_v2/)*
+- [ ] **Track: Fix Database Schema Mismatch (User, ResellerSession, InviteLink, OtpCode)**
+  *Link: [./tracks/fix_db_schema_mismatch_20260421/](./tracks/fix_db_schema_mismatch_20260421/)*
+- [ ] **Track: Fix Prisma Direct URL Connection Error**
+  *Link: [./tracks/fix_prisma_direct_url_20260421/](./tracks/fix_prisma_direct_url_20260421/)*
+- [x] **Track: Fix Invite Signup Syntax Error**
+  *Link: [./tracks/fix_invite_signup_syntax_20260421/](./tracks/fix_invite_signup_syntax_20260421/)*
+- [ ] **Track: Fix Database Schema Sync (Prompt 3)**
+  *Link: [./tracks/fix_db_schema_sync_prompt3/](./tracks/fix_db_schema_sync_prompt3/)*
+- [ ] **Track: Email OTP, Avatar Fix, Admin Revoke, and Membership Renewal (Prompt 3)**
+  *Link: [./tracks/prompt3_implementation/](./tracks/prompt3_implementation/)*

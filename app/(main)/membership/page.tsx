@@ -10,8 +10,15 @@ export default function MembershipPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
+  const [renewLoading, setRenewLoading] = useState<number | null>(null)
 
   useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    document.body.appendChild(script)
+
     fetch('/api/reseller/auth/me')
       .then(async r => {
         if (r.ok) {
@@ -27,6 +34,12 @@ export default function MembershipPage() {
         setUser(null)
         setLoading(false)
       })
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
+    }
   }, [router])
 
   const fetchUserData = async () => {
@@ -40,6 +53,62 @@ export default function MembershipPage() {
       setUserData(user)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRenew = async (months: number) => {
+    setRenewLoading(months)
+    try {
+      const res = await fetch('/api/membership/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ months }),
+      })
+      const data = await res.json()
+      if (!data.orderId) throw new Error(data.error || 'Failed to create order')
+
+      const rzp = new (window as any).Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: 'INR',
+        name: 'ArtisanStore.xyz',
+        description: `${months} Month Membership Renewal`,
+        order_id: data.orderId,
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch('/api/membership/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                months,
+              }),
+            })
+            const verifyData = await verifyRes.json()
+            if (verifyData.success) {
+              router.push('/dashboard?renewed=true')
+            } else {
+              alert('Payment verification failed. Contact support.')
+            }
+          } catch (err) {
+            console.error(err)
+            alert('Error verifying payment.')
+          }
+        },
+        prefill: {
+          name: currentUser?.username || currentUser?.name,
+          email: currentUser?.email,
+        },
+        theme: { color: '#ffd700' },
+      })
+      rzp.open()
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Failed to initiate renewal.')
+    } finally {
+      setRenewLoading(null)
     }
   }
 
@@ -135,20 +204,26 @@ export default function MembershipPage() {
                   {plan.months} {plan.months === 1 ? 'Month' : 'Months'}
                 </p>
                 <div className="flex items-end gap-1 mb-2">
-                  <span className="text-2xl font-black font-orbitron text-gold tracking-tight">₹{plan.price}</span>
+                  <span className="text-2xl font-black font-orbitron text-gold tracking-tight">{Math.ceil(plan.price / 1.5)} coins</span>
                 </div>
                 {plan.savings > 0 && (
                   <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-6">
-                    Save ₹{plan.savings}
+                    Save {Math.ceil(plan.savings / 1.5)} coins
                   </p>
                 )}
                 {!plan.savings && <div className="mb-6 h-[15px]" />}
                 
                 <button 
-                  className="mt-auto w-full bg-gold text-[#050810] font-black text-xs uppercase tracking-widest py-3 rounded-lg hover:scale-[1.02] transition-all cursor-pointer"
-                  onClick={() => {}}
+                  className="mt-auto w-full bg-gold text-[#050810] font-black text-xs uppercase tracking-widest py-3 rounded-lg hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={() => handleRenew(plan.months)}
+                  disabled={renewLoading !== null}
                 >
-                  Renew Now
+                  {renewLoading === plan.months ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4" />
+                      Processing...
+                    </>
+                  ) : 'Renew Now'}
                 </button>
               </div>
             ))}

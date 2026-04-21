@@ -24,6 +24,51 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { format } from 'date-fns'
 
+function Toggle({ value, onChange, labelOn, labelOff }: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  labelOn: string;
+  labelOff: string;
+}) {
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onChange(!value); }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        padding: '8px 12px',
+      }}
+      className="hover:bg-white/5 rounded-xl transition-colors"
+    >
+      <div style={{
+        width: '40px',
+        height: '22px',
+        borderRadius: '11px',
+        background: value ? '#22c55e' : '#ef4444',
+        position: 'relative',
+        transition: 'background 0.2s',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '3px',
+          left: value ? '21px' : '3px',
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          background: '#fff',
+          transition: 'left 0.2s',
+        }} />
+      </div>
+      <span style={{ color: '#fff', fontFamily: 'Inter', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.05em' }}>
+        {value ? labelOn : labelOff}
+      </span>
+    </div>
+  );
+}
+
 export default function AdminUsersPage() {
   const [user, setUser] = useState<any>(null)
   const [loadingAuth, setLoadingAuth] = useState(true)
@@ -62,6 +107,11 @@ export default function AdminUsersPage() {
   
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [newPassword, setNewPassword] = useState('')
+
+  const [walletModalOpen, setWalletModalOpen] = useState(false)
+  const [newWalletBalance, setNewWalletBalance] = useState('')
+
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false)
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -144,6 +194,27 @@ export default function AdminUsersPage() {
       isReseller: true, 
       membershipMonths: selectedDuration 
     })
+  }
+
+  const handleRevokeMembership = async () => {
+    if (!selectedUser) return
+    try {
+      const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ revokeMembership: true })
+      })
+      if (res.ok) {
+        toast.success("Membership revoked successfully")
+        fetchUsers()
+        setRevokeModalOpen(false)
+      } else {
+        const err = await res.json()
+        toast.error(err.error || "Revocation failed")
+      }
+    } catch (err) {
+      toast.error("Error revoking membership")
+    }
   }
 
   const openNoteModal = (user: any) => {
@@ -232,7 +303,17 @@ export default function AdminUsersPage() {
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
                         <span className="text-white font-black text-sm uppercase italic tracking-tight group-hover:text-[#ffd700] transition-colors">{user.username || user.name || 'Anonymous'}</span>
-                        <span className="text-[#64748b] text-xs font-medium">{user.email || 'No email'}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#64748b] text-xs font-medium">{user.email || 'No email'}</span>
+                          {user.email && (
+                            <Badge className={user.emailVerified 
+                              ? "bg-green-500/10 text-green-500 border-green-500/20 text-[8px] px-1.5 py-0" 
+                              : "bg-red-500/10 text-red-500 border-red-500/20 text-[8px] px-1.5 py-0"
+                            }>
+                              {user.emailVerified ? 'VERIFIED' : 'UNVERIFIED'}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -281,13 +362,30 @@ export default function AdminUsersPage() {
                             <span className="text-xs font-bold uppercase tracking-widest text-white">Change Password</span>
                           </DropdownMenuItem>
 
+                          <div className="p-1">
+                            <Toggle
+                              value={!user.emailDisabled}
+                              onChange={async (enabled) => {
+                                await handlePatch(user.id, { emailDisabled: !enabled });
+                              }}
+                              labelOn="Email 2FA: ON"
+                              labelOff="Email 2FA: OFF"
+                            />
+                          </div>
+
                           <DropdownMenuSeparator className="bg-white/5 mx-2" />
 
                           {user.isReseller ? (
-                            <DropdownMenuItem onClick={() => openDurationModal(user, false)} className="focus:bg-red-500/10 text-red-500 rounded-xl p-3 cursor-pointer">
-                              <UserMinus size={16} className="mr-3" /> 
-                              <span className="text-xs font-bold uppercase tracking-widest">Revoke Reseller</span>
-                            </DropdownMenuItem>
+                            <>
+                              <DropdownMenuItem onClick={() => { setSelectedUser(user); setRevokeModalOpen(true); }} className="focus:bg-red-500/10 text-red-500 rounded-xl p-3 cursor-pointer">
+                                <ShieldCheck size={16} className="mr-3" /> 
+                                <span className="text-xs font-bold uppercase tracking-widest">Revoke Membership</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openDurationModal(user, false)} className="focus:bg-red-500/10 text-red-500 rounded-xl p-3 cursor-pointer">
+                                <UserMinus size={16} className="mr-3" /> 
+                                <span className="text-xs font-bold uppercase tracking-widest">Revoke Reseller</span>
+                              </DropdownMenuItem>
+                            </>
                           ) : (
                             <DropdownMenuItem onClick={() => openDurationModal(user, true)} className="focus:bg-[#ffd700]/10 text-[#ffd700] rounded-xl p-3 cursor-pointer">
                               <UserPlus size={16} className="mr-3" /> 
@@ -446,6 +544,36 @@ export default function AdminUsersPage() {
               Confirm & Grant Access
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revoke Membership Modal */}
+      <Dialog open={revokeModalOpen} onOpenChange={setRevokeModalOpen}>
+        <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-md rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron italic uppercase text-red-500">Revoke Membership</DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            <p className="text-[#64748b] font-medium leading-relaxed">
+              This will immediately expire <strong className="text-white">{selectedUser?.username || selectedUser?.email}</strong>'s membership. 
+              Their reseller access will be revoked instantly. They can renew by purchasing a new membership.
+            </p>
+          </div>
+          <DialogFooter className="gap-3">
+            <Button 
+              variant="ghost"
+              onClick={() => setRevokeModalOpen(false)}
+              className="flex-1 bg-white/5 text-[#64748b] hover:text-white h-12 rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleRevokeMembership}
+              className="flex-1 bg-red-500 text-white font-black uppercase tracking-widest h-12 rounded-xl"
+            >
+              Revoke Now
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

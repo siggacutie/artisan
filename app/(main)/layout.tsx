@@ -1,6 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
-import { TawkToWidget } from '@/components/providers/TawkToWidget'
 
 export default function MainLayout({
   children,
@@ -12,7 +11,6 @@ export default function MainLayout({
       <Navbar />
       <main className="flex-grow">{children}</main>
       <MobileBottomNav />
-      <TawkToWidget />
     </div>
   );
 }

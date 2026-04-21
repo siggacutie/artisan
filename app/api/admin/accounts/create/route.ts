@@ -3,7 +3,10 @@ import { getAdminSession } from '@/lib/adminAuth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
+import { validateOrigin } from '@/lib/validateOrigin'
+
 export async function POST(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

@@ -1,21 +1,55 @@
-export const validators = {
-  playerId: (v: string) => /^\d{6,12}$/.test(v),
-  zoneId: (v: string) => /^\d{1,8}$/.test(v),
-  username: (v: string) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 50,
-  email: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 254,
-  name: (v: string) => typeof v === 'string' && v.trim().length >= 2 && v.trim().length <= 50,
-  message: (v: string) => typeof v === 'string' && v.trim().length >= 10 && v.trim().length <= 2000,
-  subject: (v: string) => typeof v === 'string' && v.trim().length >= 5 && v.trim().length <= 200,
-  orderId: (v: string) => !v || /^c[a-z0-9]{20,30}$/.test(v),
-  packageId: (v: string, registry: Record<string, any>) => typeof v === 'string' && v in registry,
+export function sanitizeInput(input: string): boolean {
+  if (!input) return true
+  const forbidden = ['<', '>', '"', "'", ';', '--', '/*', '*/']
+  return !forbidden.some(char => input.includes(char))
 }
 
-export function sanitizeHtml(s: string): string {
-  return s
-    .replace(/<[^>]*>/g, '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;')
-    .trim()
+export function validatePassword(password: string): boolean {
+  if (password.length < 8) return false
+  const hasLetter = /[a-zA-Z]/.test(password)
+  const hasNumber = /[0-9]/.test(password)
+  return hasLetter && hasNumber
+}
+
+export function validateUsername(username: string): boolean {
+  const regex = /^[a-zA-Z0-9_]{3,20}$/
+  return regex.test(username)
+}
+
+export function validateEmail(email: string): boolean {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return regex.test(email)
+}
+
+const otpAttempts = new Map<string, { count: number, resetAt: number }>()
+
+export function checkOtpBruteForce(userId: string, type: string): { allowed: boolean, remaining?: number } {
+  const key = `${userId}:${type}`
+  const now = Date.now()
+  const entry = otpAttempts.get(key)
+
+  if (entry && now < entry.resetAt) {
+    if (entry.count >= 5) {
+      return { allowed: false }
+    }
+  } else {
+    // Reset or new entry
+    otpAttempts.set(key, { count: 0, resetAt: now + 15 * 60 * 1000 })
+  }
+
+  return { allowed: true }
+}
+
+export function recordOtpFailure(userId: string, type: string) {
+  const key = `${userId}:${type}`
+  const entry = otpAttempts.get(key)
+  if (entry) {
+    entry.count += 1
+  } else {
+    otpAttempts.set(key, { count: 1, resetAt: Date.now() + 15 * 60 * 1000 })
+  }
+}
+
+export function clearOtpAttempts(userId: string, type: string) {
+  otpAttempts.delete(`${userId}:${type}`)
 }

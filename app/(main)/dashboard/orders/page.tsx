@@ -92,11 +92,11 @@ export default function OrdersPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="bg-[rgba(0,195,255,0.1)] text-[#00c3ff] text-[11px] font-bold px-2 py-0.5 rounded" style={{ fontFamily: 'Inter' }}>
-                      {order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Account'}
+                      {order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order'}
                     </span>
                     <span className="text-[#64748b] text-[11px] font-mono">{order.id.substring(0, 8)}</span>
                   </div>
-                  <h4 className="text-sm md:text-base font-bold text-white mt-1">₹{order.totalPrice}</h4>
+                  <h4 className="text-sm md:text-base font-bold text-white mt-1">{Math.ceil(order.totalPrice / 1.5)} coins</h4>
                   {order.playerUsername && (
                     <p className="text-[#94a3b8] text-[12px] mt-0.5">For: {order.playerUsername}</p>
                   )}
