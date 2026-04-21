@@ -4,6 +4,11 @@ export function sanitizeInput(input: string): boolean {
   return !forbidden.some(char => input.includes(char))
 }
 
+export function sanitizeHtml(input: string): string {
+  if (!input) return ''
+  return input.replace(/<[^>]*>?/gm, '').trim()
+}
+
 export function validatePassword(password: string): boolean {
   if (password.length < 8) return false
   const hasLetter = /[a-zA-Z]/.test(password)
@@ -19,6 +24,15 @@ export function validateUsername(username: string): boolean {
 export function validateEmail(email: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return regex.test(email)
+}
+
+export const validators = {
+  name: (val: string) => val && val.length >= 2 && val.length <= 50,
+  playerId: (val: string) => /^\d{5,15}$/.test(val),
+  zoneId: (val: string) => /^\d{3,10}$/.test(val),
+  username: (val: string) => val && val.length >= 2 && val.length <= 100,
+  email: validateEmail,
+  password: validatePassword,
 }
 
 const otpAttempts = new Map<string, { count: number, resetAt: number }>()
