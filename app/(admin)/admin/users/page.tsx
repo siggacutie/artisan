@@ -62,7 +62,7 @@ function Toggle({ value, onChange, labelOn, labelOff }: {
           transition: 'left 0.2s',
         }} />
       </div>
-      <span style={{ color: '#fff', fontFamily: 'Inter', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.05em' }}>
+      <span style={{ color: '#fff', fontFamily: 'Inter', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {value ? labelOn : labelOff}
       </span>
     </div>

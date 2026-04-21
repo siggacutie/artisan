@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getResellerSession } from '@/lib/resellerAuth'
 import Razorpay from 'razorpay'
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
-
 const MEMBERSHIP_PRICES: Record<number, number> = {
   1: 250,
   3: 699,
@@ -15,6 +10,19 @@ const MEMBERSHIP_PRICES: Record<number, number> = {
 }
 
 export async function POST(req: NextRequest) {
+  const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+  const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!razorpayKeyId || !razorpayKeySecret) {
+    console.error('Missing Razorpay configuration');
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+  }
+
+  const razorpay = new Razorpay({
+    key_id: razorpayKeyId,
+    key_secret: razorpayKeySecret,
+  });
+
   const session = await getResellerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
