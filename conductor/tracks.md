@@ -64,3 +64,9 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_db_schema_sync_prompt3/](./tracks/fix_db_schema_sync_prompt3/)*
 - [ ] **Track: Email OTP, Avatar Fix, Admin Revoke, and Membership Renewal (Prompt 3)**
   *Link: [./tracks/prompt3_implementation/](./tracks/prompt3_implementation/)*
+- [x] **Track: Landing Page INR Pricing**
+  *Link: [./tracks/landing_page_inr_pricing/](./tracks/landing_page_inr_pricing/)*
+- [ ] **Track: Prompt 3 Implementation Fixes**
+  *Link: [./tracks/prompt3_implementation_fixes/](./tracks/prompt3_implementation_fixes/)*
+- [ ] **Track: Fix Database Schema for Auto-Renew**
+  *Link: [./tracks/fix_db_schema_auto_renew/](./tracks/fix_db_schema_auto_renew/)*

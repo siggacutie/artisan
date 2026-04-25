@@ -1,0 +1,9 @@
+{
+  "id": "landing_page_inr_pricing",
+  "title": "Landing Page INR Pricing",
+  "description": "Change the price display on the landing page from coins to INR while keeping other pages in coins.",
+  "status": "completed",
+  "priority": "medium",
+  "category": "UI/UX",
+  "createdAt": "2026-04-21T22:27:00Z"
+}

@@ -115,7 +115,7 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
-export type PaymentMethod = "RAZORPAY" | "WALLET" | "UPI" | "PAYPAL" | "STRIPE" | "NOWPAYMENTS";
+export type PaymentMethod = "WALLET" | "UPI" | "PAYPAL" | "STRIPE" | "NOWPAYMENTS" | "UPI_MANUAL";
 
 export interface CurrencyInfo {
   code: string;

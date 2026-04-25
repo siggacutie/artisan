@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResellerSession } from '@/lib/resellerAuth'
 import { prisma } from '@/lib/prisma'
-import Razorpay from 'razorpay'
 import { validateOrigin } from '@/lib/validateOrigin'
 import { securityLog } from '@/lib/securityLog'
 import { rateLimit } from '@/lib/rateLimit'
@@ -23,22 +22,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many order attempts. Please wait a moment.' }, { status: 429 })
   }
 
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    return NextResponse.json({ error: 'Payment gateway misconfigured' }, { status: 500 })
-  }
-
-  const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  })
-
   try {
-    const { packageId, playerId, zoneId, username } = await req.json()
+    const { packageId, playerId, zoneId, username, paymentMethod } = await req.json()
 
-    // Get current user details from DB to check restrictions
+    // Get current user details from DB to check restrictions and balance
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, role: true, isBanned: true },
+      select: { id: true, role: true, isBanned: true, walletBalance: true },
     })
 
     if (!dbUser || dbUser.isBanned) {
@@ -110,46 +100,75 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 })
     }
 
-    const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(finalPrice * 100),
-      currency: 'INR',
-      receipt: `order_${Date.now()}`,
-      notes: {
-        userId: user.id,
-        playerId,
-        zoneId,
-        username: safeUsername,
-        packageLabel: pkg.label,
-        supplierProductId: pkg.supplierProductId,
-      },
-    })
+    // ONLY Wallet Payment is allowed now
+    if (paymentMethod !== 'wallet') {
+      return NextResponse.json({ error: 'Direct payment disabled. Please top up your wallet first.' }, { status: 400 })
+    }
 
-    const dbOrder = await prisma.order.create({
-      data: {
-        userId: user.id,
-        gameId: game.id,
-        type: 'TOPUP',
-        productId: pkg.supplierProductId,
-        quantity: 1,
-        unitPrice: finalPrice,
-        totalPrice: finalPrice,
-        paymentMethod: 'RAZORPAY',
-        paymentStatus: 'PENDING',
-        orderStatus: 'PENDING',
-        playerInputs: { playerId, zoneId },
-        mlbbUsername: safeUsername,
-        notes: pkg.label,
-      },
-    })
+    if (dbUser.walletBalance < finalPrice) {
+      return NextResponse.json({ 
+        error: 'Insufficient coins',
+        currentCoins: Math.floor(dbUser.walletBalance),
+        requiredCoins: Math.ceil(finalPrice)
+      }, { status: 402 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      razorpayOrderId: razorpayOrder.id,
-      dbOrderId: dbOrder.id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    })
+    try {
+      const order = await prisma.$transaction(async (tx) => {
+        // Double safety at DB level
+        await tx.user.update({
+          where: { 
+            id: user.id,
+            walletBalance: { gte: finalPrice }
+          },
+          data: { walletBalance: { decrement: finalPrice } }
+        })
+
+        const newOrder = await tx.order.create({
+          data: {
+            userId: user.id,
+            gameId: game.id,
+            type: 'TOPUP',
+            productId: pkg.supplierProductId,
+            quantity: 1,
+            unitPrice: finalPrice,
+            totalPrice: finalPrice,
+            paymentMethod: 'WALLET',
+            paymentStatus: 'PAID',
+            orderStatus: 'PENDING',
+            playerInputs: { playerId, zoneId },
+            mlbbUsername: safeUsername,
+            notes: pkg.label,
+          },
+        })
+
+        await tx.walletTransaction.create({
+          data: {
+            userId: user.id,
+            type: 'DEBIT',
+            amount: finalPrice,
+            currency: 'INR',
+            method: 'WALLET',
+            referenceId: `order_${newOrder.id}`,
+            status: 'COMPLETED',
+            description: `Payment for ${pkg.label} — ${safeUsername}`,
+          },
+        })
+
+        return newOrder
+      })
+
+      return NextResponse.json({
+        success: true,
+        orderId: order.id,
+        message: 'Order placed successfully using wallet balance'
+      })
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        return NextResponse.json({ error: 'Insufficient coins' }, { status: 402 })
+      }
+      throw error
+    }
   } catch (err: any) {
     console.error('Order creation error:', err)
     return NextResponse.json({ error: err.message ?? 'Order creation failed' }, { status: 500 })

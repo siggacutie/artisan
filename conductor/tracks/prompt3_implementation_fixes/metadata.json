@@ -1,0 +1,7 @@
+{
+  "title": "Prompt 3 Implementation Fixes",
+  "description": "Fix session.userId vs session.id in renew route and fix Member Since display in profile.",
+  "status": "in-progress",
+  "priority": "high",
+  "track_id": "prompt3_implementation_fixes"
+}

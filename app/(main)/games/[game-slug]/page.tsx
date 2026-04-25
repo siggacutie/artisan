@@ -76,10 +76,6 @@ export default function GameLandingPage({ params }: { params: Promise<{ "game-sl
                   <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Instant Delivery</span>
                 </div>
-                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-gold/20 rounded-full px-4 py-1.5">
-                  <ShieldCheck size={12} className="text-gold" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Razorpay Secured</span>
-                </div>
                 <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-blue-500/20 rounded-full px-4 py-1.5">
                   <Headphones size={12} className="text-blue-400" />
                   <span className="text-[10px] font-black uppercase tracking-widest">24/7 Support</span>
@@ -157,7 +153,7 @@ export default function GameLandingPage({ params }: { params: Promise<{ "game-sl
                 {[
                   { title: "Enter Player ID and Zone ID", desc: "Found in your game profile. We verify it instantly." },
                   { title: "Choose a diamond package", desc: "Select from 10+ available packages starting at low prices." },
-                  { title: "Delivered in under 5 minutes", desc: "Automated delivery once payment is confirmed via Razorpay." },
+                  { title: "Delivered in under 5 minutes", desc: "Automated delivery once payment is confirmed." },
                 ].map((step, i) => (
                   <div key={i} className="flex gap-4 p-6 bg-[#0d1120]/50 rounded-2xl border border-white/5">
                     <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-gold/30 flex items-center justify-center text-gold font-black italic">
@@ -223,7 +219,7 @@ export default function GameLandingPage({ params }: { params: Promise<{ "game-sl
                       </div>
                       <span className="text-xs font-black text-gold">{amount} coins</span>
                     </div>
-                    <p className="text-[10px] font-black uppercase text-green-500 tracking-widest">Save {Math.ceil(amount * 0.2 / 1.5)} coins</p>
+                    <p className="text-[10px] font-black uppercase text-green-500 tracking-widest">Save {Math.ceil(amount * 0.2)} coins</p>
                   </div>
                 ))}
               </div>

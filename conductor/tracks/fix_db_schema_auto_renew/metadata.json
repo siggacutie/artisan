@@ -1,0 +1,7 @@
+{
+  "title": "Fix Database Schema for Auto-Renew",
+  "description": "Add autoRenew and autoRenewMonths columns to the User table to resolve Prisma error P2022.",
+  "status": "in-progress",
+  "priority": "high",
+  "track_id": "fix_db_schema_auto_renew"
+}

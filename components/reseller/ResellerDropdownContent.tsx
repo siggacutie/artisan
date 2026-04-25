@@ -47,21 +47,37 @@ export function ResellerDropdownContent() {
         Diamond Packages
       </div>
       {packages.map((pkg) => (
-        <div
-          key={pkg.id}
+        <div 
+          key={pkg.id} 
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '8px 16px',
+            justifyContent: 'space-between',
+            padding: '8px 12px',
+            gap: '16px',
             borderBottom: '1px solid rgba(255,215,0,0.05)',
           }}
         >
-          <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#ffffff' }}>
+          <span style={{
+            color: '#e2e8f0',
+            fontFamily: 'Inter',
+            fontSize: '13px',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            minWidth: '160px', // fixed width for package name column
+          }}>
             {pkg.name}
           </span>
-          <span style={{ fontFamily: 'Orbitron', fontSize: '13px', color: '#ffd700', fontWeight: 700 }}>
-            {Math.ceil(pkg.resellerPrice / 1.5)} coins
+          <span style={{
+            color: '#ffd700',
+            fontFamily: 'Orbitron',
+            fontSize: '13px',
+            fontWeight: '700',
+            whiteSpace: 'nowrap',
+            textAlign: 'right',
+            flexShrink: 0,
+          }}>
+            {Math.ceil(pkg.resellerPrice)} coins
           </span>
         </div>
       ))}

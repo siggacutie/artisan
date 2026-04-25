@@ -31,7 +31,7 @@ export default function TermsPage() {
     },
     {
       title: "4. Payments",
-      content: "All payments are processed by Razorpay. We accept UPI, credit/debit cards, net banking. Prices are in INR. Currency conversion shown for international users is indicative only. Wallet balance can be loaded and used for purchases. All payments are securely processed via Razorpay."
+      content: "All payments are processed securely via our payment gateway. We accept UPI, credit/debit cards, and net banking. Prices are in INR. Currency conversion shown for international users is indicative only. Wallet balance can be loaded and used for purchases. All payments are processed through encrypted channels."
     },
     {
       title: "5. Delivery Policy",
@@ -47,7 +47,7 @@ export default function TermsPage() {
     },
     {
       title: "8. Privacy",
-      content: "We collect email, IP address, and order information. We do not sell personal data. Payment data is handled by Razorpay and never stored on our servers. See Privacy Policy for full details."
+      content: "We collect email, IP address, and order information. We do not sell personal data. Payment data is handled by our secure payment provider and never stored on our servers. See Privacy Policy for full details."
     },
     {
       title: "9. Liability Limitation",

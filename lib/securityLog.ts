@@ -32,7 +32,7 @@ function sanitizeForLog(obj: Record<string, any>): Record<string, any> {
   const SENSITIVE_KEYS = [
     'password', 'secret', 'token', 'key', 'signature',
     'authorization', 'cookie', 'session', 'cardNumber',
-    'cvv', 'razorpaySignature', 'apiKey',
+    'cvv', 'apiKey',
   ]
   const result: Record<string, any> = {}
   for (const [k, v] of Object.entries(obj)) {

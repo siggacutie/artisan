@@ -56,7 +56,7 @@ export default function AccountsPage() {
         </div>
         <div className="flex-grow">
           <h3 className="text-[#ffd700] font-bold font-orbitron text-lg uppercase tracking-wider leading-none">Account selling is currently disabled</h3>
-          <p className="text-gray-400 text-sm mt-2 font-medium">Management of account listings is restricted until further notice. Razorpay compliance requires all account reselling activities to be paused.</p>
+          <p className="text-gray-400 text-sm mt-2 font-medium">Management of account listings is restricted until further notice. Compliance requirements require all account reselling activities to be paused.</p>
         </div>
       </div>
 

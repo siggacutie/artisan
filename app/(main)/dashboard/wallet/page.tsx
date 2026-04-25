@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Variants } from "framer-motion";
 
 export default function WalletPage() {
   const [user, setUser] = useState<any>(null)
@@ -65,87 +66,148 @@ export default function WalletPage() {
   }
 
   const inrBalance = summary?.walletBalance ?? 0;
-  const coinBalance = Math.floor(inrBalance / 1.5);
+  const coinBalance = Math.floor(inrBalance);
   const totalSpentInr = summary?.totalSpent ?? 0;
-  const totalSpentCoins = Math.floor(totalSpentInr / 1.5);
+  const totalSpentCoins = Math.floor(totalSpentInr);
 
   return (
     <div className="space-y-8 max-w-full overflow-hidden">
       {/* Balance Card */}
-      <div className="relative overflow-hidden bg-[#0d1120] border border-gold/20 rounded-2xl p-6 md:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] group w-full max-w-full box-sizing-border-box">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Wallet className="w-4 h-4 text-gold" />
-              <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">Artisan Wallet</span>
+      <div style={{
+        background: '#0d1120',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: '24px',
+        padding: '32px',
+        boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)',
+          zIndex: 20
+        }} />
+        
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '10px',
+                background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05))',
+                border: '1px solid rgba(255,215,0,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(255,215,0,0.1)',
+              }}>
+                <Coins size={20} color="#ffd700" />
+              </div>
+              <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                Artisan Wallet
+              </span>
             </div>
+
             <div>
               {loading ? (
-                <div className="bg-[#050810] border border-white/5 rounded-lg h-[80px] w-[200px] animate-pulse-fast mb-2" />
+                <div className="space-y-3">
+                  <div className="h-16 w-48 bg-white/5 animate-pulse rounded-xl" />
+                  <div className="h-4 w-32 bg-white/5 animate-pulse rounded" />
+                </div>
               ) : (
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 md:w-20 md:h-20 relative">
-                       <img src="/assets/games/mlbb/coin.png" alt="Coin" className="w-full h-full object-contain" />
-                    </div>
-                    <h2 className="text-6xl md:text-8xl font-black font-orbitron text-[#ffd700] tracking-tighter">
-                      {coinBalance} <span className="text-2xl md:text-4xl">coins</span>
-                    </h2>
+                  <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontWeight: '700', letterSpacing: '-1px', margin: 0 }} className="text-5xl md:text-6xl">
+                    {coinBalance} <span style={{ opacity: 0.7 }} className="text-xl md:text-2xl">COINS</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-[#64748b] text-[10px] mt-2 font-bold uppercase tracking-widest">
+                    <History className="w-3 h-3" />
+                    <span>Last updated: Just now</span>
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex items-center space-x-2 text-gray-500 text-[10px]">
-              <History className="w-3 h-3" />
-              <span>Last updated: Just now</span>
-            </div>
           </div>
 
-          <div className="w-full md:w-auto space-y-3">
-            <Link href="/wallet/add" className="w-full">
-              <Button className="w-full md:w-[200px] h-14 bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest transition-all hover:bg-[#ffd700]/90 border-none shadow-none">
+          <div className="w-full md:w-auto">
+            <Link href="/wallet/add" style={{ textDecoration: 'none' }}>
+              <Button 
+                style={{
+                  width: '100%',
+                  height: '56px',
+                  backgroundColor: '#ffd700',
+                  color: '#050810',
+                  fontFamily: 'Inter',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  borderRadius: '16px',
+                  transition: 'all 0.15s ease',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 24px rgba(255,215,0,0.2)'
+                }}
+                className="md:w-[200px]"
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 Add Funds
               </Button>
             </Link>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <div className="bg-black/40 border border-white/5 px-4 py-2 rounded-full flex items-center space-x-2">
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-widest">Total Spent:</span>
-            {loading ? (
-              <div className="w-12 h-4 bg-white/5 animate-pulse rounded" />
-            ) : (
-              <span className="text-white text-xs font-bold">{totalSpentCoins} coins</span>
-            )}
+        <div className="mt-10 pt-8 border-t border-white/5 flex flex-wrap gap-8">
+          <div>
+            <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>
+              {totalSpentCoins}
+            </div>
+            <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px', fontWeight: '700' }}>
+              Coins Spent
+            </div>
           </div>
-          <div className="bg-black/40 border border-white/5 px-4 py-2 rounded-full flex items-center space-x-2">
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-widest">Orders:</span>
-            {loading ? (
-              <div className="w-8 h-4 bg-white/5 animate-pulse rounded" />
-            ) : (
-              <span className="text-white text-xs font-bold">{summary?.orderCount ?? 0}</span>
-            )}
+          
+          <div className="w-px h-10 bg-white/5" />
+
+          <div>
+            <div style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>
+              {summary?.orderCount ?? 0}
+            </div>
+            <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px', fontWeight: '700' }}>
+              Total Orders
+            </div>
           </div>
         </div>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-[#0d1120] border-l-[3px] border-gold p-5 rounded-r-xl flex items-center justify-between group">
+      <div style={{
+        background: '#0d1120',
+        border: '1px solid rgba(255,215,0,0.15)',
+        borderLeft: '3px solid #ffd700',
+        borderRadius: '0 12px 12px 0',
+        padding: '20px 24px',
+        boxShadow: '0 4px 24px rgba(255,215,0,0.05)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
         <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
-            <Coins className="w-5 h-5" />
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%',
+            background: 'rgba(255,215,0,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Coins size={18} color="#ffd700" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white leading-relaxed">
-              1 Coin = 1.5 INR.
+            <p style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '14px', fontWeight: '700', margin: 0 }}>
+              1 Coin = 1 INR
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">Use coins for instant checkout on all games.</p>
+            <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', margin: '2px 0 0 0' }}>Use coins for instant checkout on all games.</p>
           </div>
         </div>
-        <Link href="/wallet/add" className="hidden sm:flex items-center text-gold text-[10px] font-black uppercase tracking-[0.2em] group-hover:translate-x-2 transition-transform">
-          Add More Coins <ChevronRight className="w-4 h-4 ml-1" />
+        <Link href="/wallet/add" style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          Add More <ChevronRight className="w-4 h-4 ml-1" />
         </Link>
       </div>
     </div>

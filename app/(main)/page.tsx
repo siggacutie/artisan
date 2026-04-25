@@ -79,31 +79,66 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="py-20 px-6 max-w-5xl mx-auto text-center space-y-6">
-        <div className="text-gold font-orbitron text-[10px] font-black tracking-[0.3em] uppercase">Reseller Platform</div>
-        <h1 className="font-orbitron text-4xl md:text-6xl font-black tracking-tighter uppercase italic leading-none">
-          MLBB Diamonds at<br />Wholesale Rates
-        </h1>
-        <p className="text-[#94a3b8] text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-          Verified resellers get access to our lowest prices. Apply via WhatsApp to get started.
-        </p>
-        <div className="pt-4">
-          <a href="https://wa.me/919387606432" target="_blank" rel="noopener noreferrer" className="bg-[#25d366] text-white font-black text-sm uppercase tracking-widest px-8 py-4 rounded-xl inline-flex items-center gap-3 shadow-lg hover:scale-105 transition-all">
-            <MessageCircle size={20} />
-            Apply for Access
-          </a>
+      <section className="relative py-24 px-6 max-w-5xl mx-auto text-center space-y-8 overflow-hidden">
+        {/* Noise Texture Overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+          opacity: 0.4,
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '10px', fontWeight: '900', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '16px' }}>
+            Reseller Platform
+          </div>
+          <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', lineHeight: '1.1' }} className="text-4xl md:text-6xl">
+            MLBB Diamonds at<br />Wholesale Rates
+          </h1>
+          <p style={{ color: '#94a3b8', fontFamily: 'Inter', maxWidth: '600px', margin: '24px auto 0', lineHeight: '1.6' }} className="text-base md:text-lg">
+            Verified resellers get access to our lowest prices. Apply via WhatsApp to get started.
+          </p>
+          <div className="pt-10">
+            <a 
+              href="https://wa.me/919387606432" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              style={{
+                backgroundColor: '#25d366',
+                color: '#ffffff',
+                fontFamily: 'Inter',
+                fontSize: '13px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                padding: '16px 40px',
+                borderRadius: '12px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '12px',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 8px 32px rgba(37, 211, 102, 0.2)'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <MessageCircle size={20} />
+              Apply for Access
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Pricing Table Section */}
-      <section className="py-20 px-6 max-w-5xl mx-auto space-y-12">
-        <div className="border-l-4 border-gold pl-6">
-          <h2 className="font-orbitron text-2xl font-black uppercase tracking-tighter">Reseller Pricing</h2>
-          <p className="text-[#64748b] text-xs font-medium mt-1">Prices updated automatically. All amounts in INR.</p>
+      <section className="py-24 px-6 max-w-5xl mx-auto space-y-16">
+        <div style={{ borderLeft: '4px solid #ffd700', paddingLeft: '24px' }}>
+          <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>Reseller Pricing</h2>
+          <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', fontWeight: '600', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Prices updated automatically. All amounts in INR.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {[
             { id: 'standard', label: 'Diamond Top-Up' },
             { id: 'double', label: 'Double Diamond' },
@@ -112,9 +147,20 @@ export default function HomePage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                activeTab === tab.id ? 'bg-gold text-[#050810]' : 'bg-[#0d1120] text-[#64748b] hover:text-white border border-white/5'
-              }`}
+              style={{
+                padding: '12px 28px',
+                borderRadius: '12px',
+                fontFamily: 'Inter',
+                fontSize: '11px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+                backgroundColor: activeTab === tab.id ? '#ffd700' : '#0d1120',
+                color: activeTab === tab.id ? '#050810' : '#64748b',
+                border: activeTab === tab.id ? 'none' : '1px solid rgba(255,255,255,0.05)',
+              }}
             >
               {tab.label}
             </button>
@@ -124,7 +170,20 @@ export default function HomePage() {
         {loadingPackages ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="bg-[#0d1120] border border-white/5 rounded-2xl h-24 animate-pulse" />
+              <div key={i} style={{
+                background: '#0d1120',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                height: '96px',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%)',
+                  animation: 'shimmer 1.5s infinite',
+                }} />
+              </div>
             ))}
           </div>
         ) : filteredPackages.length === 0 ? (
@@ -134,9 +193,30 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPackages.map((pkg) => (
-              <div key={pkg.id} className="bg-[#0d1120] border border-white/5 rounded-2xl p-6 flex justify-between items-center hover:border-gold/20 transition-all">
-                <div className="text-sm font-bold text-white uppercase tracking-tight">{pkg.name}</div>
-                <div className="text-xl font-black font-orbitron text-gold">{Math.ceil(pkg.resellerPrice / 1.5)} coins</div>
+              <div 
+                key={pkg.id} 
+                style={{
+                  background: 'linear-gradient(135deg, #0d1120 0%, #0a0f1e 100%)',
+                  border: '1px solid rgba(255,215,0,0.08)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,215,0,0.2)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,215,0,0.08)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>{pkg.name}</div>
+                <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '900' }}>₹{pkg.resellerPrice}</div>
               </div>
             ))}
           </div>

@@ -1,6 +1,8 @@
 // Run these in Supabase SQL Editor:
 // ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "username" TEXT;
 // ALTER TABLE "User" ADD CONSTRAINT IF NOT EXISTS "User_username_key" UNIQUE ("username");
+// ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "autoRenew" BOOLEAN NOT NULL DEFAULT false;
+// ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "autoRenewMonths" INTEGER NOT NULL DEFAULT 1;
 // DROP TABLE IF EXISTS "Account" CASCADE;
 // DROP TABLE IF EXISTS "Session" CASCADE;
 // DROP TABLE IF EXISTS "VerificationToken" CASCADE;
@@ -53,6 +55,8 @@ model User {
   isFrozen             Boolean             @default(false)
   lastSeenAt           DateTime?
   isReseller           Boolean             @default(false)
+  autoRenew            Boolean             @default(false)
+  autoRenewMonths      Int                 @default(1)
   otpCodes             OtpCode[]
   resellerSession      ResellerSession?
   accountsPurchased    AccountListing[]    @relation("SoldToUser")
@@ -60,6 +64,22 @@ model User {
   orders               Order[]
   supportTickets       SupportTicket[]
   transactions         WalletTransaction[]
+  paymentLinks         PaymentLink[]
+}
+
+model PaymentLink {
+  id             String    @id @default(cuid())
+  userId         String
+  amount         Float
+  upiRef         String    @unique
+  status         String    @default("PENDING")
+  utrNumber      String?   @unique
+  expiresAt      DateTime  @default(dbgenerated("NOW() + INTERVAL '30 minutes'"))
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+  ipAddress      String?
+  utrSubmittedAt DateTime?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ResellerSession {

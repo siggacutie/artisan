@@ -57,6 +57,14 @@ export default function PromoBanner() {
 
   return (
     <div className="relative w-full h-[320px] overflow-hidden bg-[#050810]" style={{ borderBottom: '1px solid rgba(255,215,0,0.15)' }}>
+      {/* Noise Texture Overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 15,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+        opacity: 0.4,
+        pointerEvents: 'none',
+      }} />
+      
       {banners.map((banner, index) => (
         <div
           key={banner.id}
@@ -79,29 +87,31 @@ export default function PromoBanner() {
           {/* Left Side (60%) */}
           <div className="w-full md:w-[60%] z-20 flex flex-col items-start">
             <span 
-              className="px-2 py-0.5 rounded-sm mb-4 inline-block text-[11px] font-bold uppercase tracking-widest"
-              style={{ color: "#ffd700", fontFamily: "var(--font-orbitron)" }}
+              className="mb-4 inline-block text-[11px] font-black uppercase tracking-[3px]"
+              style={{ color: "#ffd700", fontFamily: "Orbitron" }}
             >
               {banner.label}
             </span>
-            <div style={{ borderLeft: '3px solid #ffd700', paddingLeft: '16px' }} className="mb-3">
+            <div style={{ borderLeft: '3px solid #ffd700', paddingLeft: '20px' }} className="mb-4">
               <h2 
-                className="text-white text-2xl md:text-[42px] font-bold leading-tight whitespace-pre-line"
-                style={{ fontFamily: "var(--font-orbitron)" }}
+                className="text-white text-2xl md:text-[48px] font-black leading-[1.1] whitespace-pre-line uppercase tracking-tight"
+                style={{ fontFamily: "Orbitron" }}
               >
                 {banner.heading}
               </h2>
             </div>
             <p 
-              className="text-[#94a3b8] text-sm md:text-[15px] mb-8 max-w-md line-clamp-1"
-              style={{ fontFamily: "var(--font-inter)" }}
+              className="text-[#e2e8f0] text-sm md:text-[15px] mb-8 max-w-md line-clamp-1 leading-relaxed"
+              style={{ fontFamily: "Inter" }}
             >
               {banner.subtext}
             </p>
             <Link
               href={banner.ctaLink}
-              className="bg-[#ffd700] text-[#050810] px-[28px] py-[10px] rounded-[6px] text-[13px] font-bold uppercase tracking-wide hover:bg-[#ffed4a] transition-all cursor-pointer border-none"
-              style={{ fontFamily: "var(--font-inter)" }}
+              className="bg-[#ffd700] text-[#050810] px-[32px] py-[12px] rounded-[8px] text-[13px] font-black uppercase tracking-widest hover:scale-[1.05] transition-all cursor-pointer border-none shadow-[0_4px_16px_rgba(255,215,0,0.2)]"
+              style={{ fontFamily: "Inter" }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1.05)'}
             >
               {banner.ctaText}
             </Link>
@@ -110,11 +120,12 @@ export default function PromoBanner() {
           {/* Right Side (40%) - Decorative Text */}
           <div className="absolute right-0 top-0 bottom-0 w-full md:w-[40%] flex items-center justify-end pointer-events-none overflow-hidden pr-6 md:pr-16">
             <span 
-              className="text-[80px] md:text-[100px] font-black uppercase tracking-tighter opacity-20 select-none leading-none translate-x-1/4 md:translate-x-0"
+              className="text-[100px] md:text-[140px] font-black uppercase tracking-tighter opacity-10 select-none leading-none translate-x-1/4 md:translate-x-0"
               style={{ 
                 color: banner.accentColor, 
-                fontFamily: "var(--font-orbitron)",
-                fontWeight: 900
+                fontFamily: "Orbitron",
+                fontWeight: 900,
+                fontStyle: 'italic'
               }}
             >
               {banner.decorativeText}

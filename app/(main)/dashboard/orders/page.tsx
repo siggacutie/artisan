@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DiamondSVG } from "@/components/shared/Icons";
 import { useRouter } from "next/navigation";
+import { motion, Variants } from "framer-motion";
+
+const containerVariants: Variants = {
+  animate: { transition: { staggerChildren: 0.07 } }
+}
+
+const cardVariants: Variants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+}
 
 export default function OrdersPage() {
   const [user, setUser] = useState<any>(null)
@@ -76,50 +86,101 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-bold font-orbitron text-white tracking-tight uppercase">Order History</h3>
-      <div className="space-y-4">
+    <div className="space-y-8">
+      <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
+        Order History
+      </h1>
+      
+      <motion.div 
+        className="space-y-4"
+        variants={containerVariants}
+        initial="initial"
+        animate="animate"
+      >
         {orders.map((order) => (
-          <div 
+          <motion.div 
             key={order.id}
-            className="group relative bg-[#0d1120] border border-[rgba(255,215,0,0.08)] rounded-[10px] p-4 md:p-6 transition-all duration-300"
+            variants={cardVariants}
+            style={{
+              background: 'linear-gradient(135deg, #0d1120 0%, #0a0f1e 100%)',
+              border: '1px solid rgba(255,215,0,0.08)',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,215,0,0.15)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.3)';
+            }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5">
-                  <DiamondSVG className="w-6 h-6" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div style={{
+                  width: '56px', height: '56px', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, rgba(0,195,255,0.15), rgba(0,195,255,0.05))',
+                  border: '1px solid rgba(0,195,255,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,195,255,0.1)',
+                }}>
+                  <PackageOpen size={24} color="#00c3ff" />
                 </div>
+                
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-[rgba(0,195,255,0.1)] text-[#00c3ff] text-[11px] font-bold px-2 py-0.5 rounded" style={{ fontFamily: 'Inter' }}>
+                  <div className="flex items-center gap-3">
+                    <span style={{ color: '#00c3ff', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       {order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order'}
                     </span>
-                    <span className="text-[#64748b] text-[11px] font-mono">{order.id.substring(0, 8)}</span>
+                    <span style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700' }}>#{order.id.substring(0, 8)}</span>
                   </div>
-                  <h4 className="text-sm md:text-base font-bold text-white mt-1">{Math.ceil(order.totalPrice / 1.5)} coins</h4>
+                  <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '700', marginTop: '4px' }}>
+                    {Math.ceil(order.totalPrice)} <span style={{ fontSize: '12px', opacity: 0.8 }}>COINS</span>
+                  </div>
                   {order.playerUsername && (
-                    <p className="text-[#94a3b8] text-[12px] mt-0.5">For: {order.playerUsername}</p>
+                    <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>
+                      Player: <span style={{ color: '#e2e8f0' }}>{order.playerUsername}</span>
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div className="text-right">
-                <Badge className={
-                  order.orderStatus === 'COMPLETED' ? "bg-green-500/10 text-[#22c55e] border-none text-[10px] px-2 uppercase font-bold" :
-                  order.orderStatus === 'PENDING' ? "bg-yellow-500/10 text-[#f59e0b] border-none text-[10px] px-2 uppercase font-bold" :
-                  order.orderStatus === 'PROCESSING' ? "bg-blue-500/10 text-[#00c3ff] border-none text-[10px] px-2 uppercase font-bold" :
-                  "bg-red-500/10 text-[#ef4444] border-none text-[10px] px-2 uppercase font-bold"
-                }>
+              <div className="flex flex-row md:flex-col justify-between md:items-end gap-2">
+                <div style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '10px',
+                  fontWeight: '800',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  backgroundColor: 
+                    order.orderStatus === 'COMPLETED' ? 'rgba(34,197,94,0.1)' :
+                    order.orderStatus === 'PENDING' ? 'rgba(245,158,11,0.1)' :
+                    order.orderStatus === 'PROCESSING' ? 'rgba(0,195,255,0.1)' :
+                    'rgba(239,68,68,0.1)',
+                  color: 
+                    order.orderStatus === 'COMPLETED' ? '#22c55e' :
+                    order.orderStatus === 'PENDING' ? '#f59e0b' :
+                    order.orderStatus === 'PROCESSING' ? '#00c3ff' :
+                    '#ef4444',
+                  border: '1px solid currentColor',
+                  opacity: 0.8
+                }}>
                   {order.orderStatus}
-                </Badge>
-                <p className="text-[#475569] text-[11px] mt-2" style={{ fontFamily: 'Inter' }}>
+                </div>
+                <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '600' }}>
                   {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

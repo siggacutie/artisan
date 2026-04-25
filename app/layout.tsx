@@ -43,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${orbitron.variable} ${rajdhani.variable} ${inter.variable} ${geistMono.variable} antialiased dark`} suppressHydrationWarning={true}>
       <head>
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
       </head>
       <body className="min-h-screen bg-[#09090b] text-white" suppressHydrationWarning={true}>
         {children}

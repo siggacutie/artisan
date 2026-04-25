@@ -31,7 +31,7 @@ export default function PrivacyPage() {
     },
     {
       title: "4. Data Sharing",
-      content: "We share minimal data with:\n- Razorpay (payment processing)\n- Smile.one (diamond delivery supplier)\nWe do not sell your data to any third party."
+      content: "We share minimal data with:\n- Secure Payment Gateway (payment processing)\n- Smile.one (diamond delivery supplier)\nWe do not sell your data to any third party."
     },
     {
       title: "5. Data Storage",

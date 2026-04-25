@@ -126,14 +126,50 @@ export default function Navbar() {
 
         {/* Links - Center (Desktop) */}
         <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
-          <Link href="/" className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors", pathname === '/' ? "text-gold" : "text-zinc-500 hover:text-white")}>
+          <Link href="/" style={{
+            position: 'relative',
+            color: pathname === '/' ? '#ffd700' : '#94a3b8',
+            fontFamily: 'Inter',
+            fontSize: '14px',
+            fontWeight: pathname === '/' ? '600' : '400',
+            padding: '8px 4px',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            textDecoration: 'none',
+          }}>
             Home
+            {pathname === '/' && (
+              <div style={{
+                position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '2px',
+                background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
+                borderRadius: '1px',
+              }} />
+            )}
           </Link>
           <div className="relative group">
-            <button className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-hover:text-white transition-colors">
+            <button style={{
+              position: 'relative',
+              color: pathname.startsWith('/games') ? '#ffd700' : '#94a3b8',
+              fontFamily: 'Inter',
+              fontSize: '14px',
+              fontWeight: pathname.startsWith('/games') ? '600' : '400',
+              padding: '8px 4px',
+              cursor: 'pointer',
+              transition: 'color 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}>
               Games <ChevronDown size={10} />
+              {pathname.startsWith('/games') && (
+                <div style={{
+                  position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '2px',
+                  background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
+                  borderRadius: '1px',
+                }} />
+              )}
             </button>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#0d1120] border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-2xl">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#0d1120] border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-[-8px] scale-[0.97] group-hover:scale-100 transition-all duration-150 shadow-2xl">
               <Link href="/games/mobile-legends/topup" className="flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
                 <Gamepad2 size={14} />
                 Mobile Legends
@@ -141,18 +177,55 @@ export default function Navbar() {
             </div>
           </div>
           <div className="relative group">
-            <Link href="/reseller" className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors", pathname === '/reseller' ? "text-gold" : "text-zinc-500 group-hover:text-white")}>
+            <Link href="/reseller" style={{
+              position: 'relative',
+              color: pathname === '/reseller' ? '#ffd700' : '#94a3b8',
+              fontFamily: 'Inter',
+              fontSize: '14px',
+              fontWeight: pathname === '/reseller' ? '600' : '400',
+              padding: '8px 4px',
+              cursor: 'pointer',
+              transition: 'color 0.2s ease',
+              textDecoration: 'none',
+              display: 'block'
+            }}>
               Reseller
+              {pathname === '/reseller' && (
+                <div style={{
+                  position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '2px',
+                  background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
+                  borderRadius: '1px',
+                }} />
+              )}
             </Link>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#0d1120] border border-white/10 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-2xl z-50 overflow-hidden">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#0d1120] border border-white/10 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-[-8px] scale-[0.97] group-hover:scale-100 transition-all duration-150 shadow-2xl z-50 overflow-hidden">
               <ResellerDropdownContent />
             </div>
           </div>
           <div className="relative group">
-            <button className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 group-hover:text-white transition-colors">
+            <button style={{
+              position: 'relative',
+              color: (pathname === '/contact' || pathname === '/terms' || pathname === '/privacy' || pathname === '/refund') ? '#ffd700' : '#94a3b8',
+              fontFamily: 'Inter',
+              fontSize: '14px',
+              fontWeight: (pathname === '/contact' || pathname === '/terms' || pathname === '/privacy' || pathname === '/refund') ? '600' : '400',
+              padding: '8px 4px',
+              cursor: 'pointer',
+              transition: 'color 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}>
               Support <ChevronDown size={10} />
+              {(pathname === '/contact' || pathname === '/terms' || pathname === '/privacy' || pathname === '/refund') && (
+                <div style={{
+                  position: 'absolute', bottom: '-2px', left: 0, right: 0, height: '2px',
+                  background: 'linear-gradient(90deg, transparent, #ffd700, transparent)',
+                  borderRadius: '1px',
+                }} />
+              )}
             </button>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[180px] bg-[#0d1120] border border-[rgba(255,215,0,0.1)] rounded-[8px] p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-2xl z-50">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[180px] bg-[#0d1120] border border-[rgba(255,215,0,0.1)] rounded-[8px] p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-[-8px] scale-[0.97] group-hover:scale-100 transition-all duration-150 shadow-2xl z-50">
               <Link href="/contact" className="font-inter text-[14px] text-white px-[16px] py-[10px] block no-underline hover:bg-[rgba(255,215,0,0.05)] transition-all">
                 Contact Us
               </Link>
@@ -177,7 +250,7 @@ export default function Navbar() {
               className="hidden sm:flex items-center space-x-3 bg-[#0d1120] border border-gold/10 hover:border-gold/30 transition-all rounded-2xl px-4 py-2"
             >
               <span className="text-[11px] font-black text-white tracking-tighter">
-                {Math.floor(user.walletBalance / 1.5)} coins
+                {Math.floor(user.walletBalance)} coins
               </span>
             </Link>
           )}
@@ -273,7 +346,7 @@ export default function Navbar() {
                 <>
                   <div className="flex items-center justify-between px-4 py-3 bg-white/5 rounded-xl mb-4 border border-white/5">
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Wallet Balance</span>
-                    <span className="text-sm font-black text-gold uppercase tracking-tighter italic">{Math.floor(user.walletBalance / 1.5)} coins</span>
+                    <span className="text-sm font-black text-gold uppercase tracking-tighter italic">{Math.floor(user.walletBalance)} coins</span>
                   </div>
                   <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 uppercase tracking-widest">Dashboard</Link>
                   <Link href="/dashboard/orders" onClick={() => setIsOpen(false)} className="block text-xs font-black text-zinc-400 uppercase tracking-widest">Orders</Link>

@@ -78,35 +78,60 @@ export default function DashboardLayout({
   const activeTab = navItems.find(item => pathname.startsWith(item.href))?.id || "wallet";
 
   return (
-    <div className="min-h-screen bg-[#050810] text-white font-inter pb-24 md:pb-0">
+    <div className="min-h-screen bg-[#050810] text-white font-inter pb-24 md:pb-0 overflow-hidden">
       <Navbar />
       
       <div className="flex pt-20 h-screen overflow-hidden">
         {/* Sidebar - Desktop Only */}
-        <aside className="hidden md:flex flex-col w-[260px] bg-[#0d1120] border-r border-[rgba(255,215,0,0.08)] h-full overflow-y-auto shrink-0">
-          <div className="p-8 pb-4 space-y-4">
-            <div className="flex flex-col space-y-0.5 text-left">
-              <h3 className="text-white font-bold font-orbitron text-sm">{user?.name ?? 'Player'}</h3>
-              <p className="text-gray-400 text-[10px]">{user?.email}</p>
+        <aside style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '260px',
+          background: '#0d1120',
+          borderRight: '1px solid rgba(255,215,0,0.08)',
+          height: '100%',
+          overflowY: 'auto',
+          flexShrink: 0,
+          boxShadow: '4px 0 24px rgba(0,0,0,0.4)',
+          position: 'relative',
+          zIndex: 20
+        }} className="hidden md:flex">
+          <div className="p-8 pb-4 space-y-6">
+            <div className="flex flex-col space-y-2 text-left p-4 bg-white/5 rounded-2xl border border-white/5">
+              <h3 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '13px', fontWeight: '700', letterSpacing: '0.5px' }}>{user?.name ?? 'Player'}</h3>
+              <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '11px' }}>{user?.email}</p>
               <div className="flex items-center space-x-1.5 mt-2 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 w-fit">
                 <CheckCircle2 className="w-3 h-3 text-green-500" />
-                <span className="text-[9px] text-green-500 font-black uppercase tracking-widest">Verified</span>
+                <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Verified</span>
               </div>
             </div>
 
-            <nav className="space-y-0.5 pt-6">
+            <nav className="space-y-1 pt-4">
               {navItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
-                    activeTab === item.id 
-                      ? "bg-[rgba(255,215,0,0.08)] text-gold border-l-2 border-gold" 
-                      : "text-white/70 hover:bg-white/5 hover:text-white"
-                  }`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    transition: 'all 0.2s ease',
+                    textDecoration: 'none',
+                    backgroundColor: activeTab === item.id ? 'rgba(255,215,0,0.08)' : 'transparent',
+                    borderLeft: activeTab === item.id ? '2px solid #ffd700' : '2px solid transparent',
+                  }}
+                  className={activeTab === item.id ? "text-gold" : "text-white/70 hover:bg-white/5 hover:text-white"}
                 >
                   <item.icon className={`w-4 h-4 ${activeTab === item.id ? "text-gold" : "text-gray-400"}`} />
-                  <span className="text-[11px] font-bold font-rajdhani uppercase tracking-widest">{item.label}</span>
+                  <span style={{ 
+                    fontFamily: 'Inter', 
+                    fontSize: '11px', 
+                    fontWeight: activeTab === item.id ? '700' : '500', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '1px' 
+                  }}>{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -115,10 +140,24 @@ export default function DashboardLayout({
           <div className="mt-auto p-4 border-t border-white/5 bg-black/20">
             <button 
               onClick={handleSignOut}
-              className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-gray-500 hover:text-red-500 transition-all duration-200 group text-[11px] font-bold uppercase tracking-widest font-rajdhani"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                color: '#64748b',
+                transition: 'all 0.2s ease',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+              onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
             >
               <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
+              <span style={{ fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Sign Out</span>
             </button>
           </div>
         </aside>
@@ -130,8 +169,8 @@ export default function DashboardLayout({
             <div className="md:hidden space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold font-orbitron text-white">My Dashboard</h1>
-                  <p className="text-gray-500 text-xs mt-1">Welcome back, {user?.name?.split(' ')[0] ?? 'Player'}</p>
+                  <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '1px' }}>My Dashboard</h1>
+                  <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px', marginTop: '4px' }}>Welcome back, {user?.name?.split(' ')[0] ?? 'Player'}</p>
                 </div>
                 <Avatar className="w-10 h-10 border border-gold/20">
                   <AvatarImage src={user?.image ?? ''} />
@@ -146,11 +185,22 @@ export default function DashboardLayout({
                   <Link
                     key={item.id}
                     href={item.href}
-                    className={`px-6 py-2 rounded-full whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${
-                      activeTab === item.id 
-                        ? "bg-gold text-black shadow-[0_0_15px_rgba(255,215,0,0.2)]" 
-                        : "bg-[#0d1120] text-gray-400 border border-white/5"
-                    }`}
+                    style={{
+                      padding: '10px 24px',
+                      borderRadius: '99px',
+                      fontFamily: 'Inter',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      transition: 'all 0.2s ease',
+                      backgroundColor: activeTab === item.id ? '#ffd700' : '#0d1120',
+                      color: activeTab === item.id ? '#050810' : '#94a3b8',
+                      border: activeTab === item.id ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                      boxShadow: activeTab === item.id ? '0 4px 12px rgba(255,215,0,0.2)' : 'none',
+                      whiteSpace: 'nowrap',
+                      textDecoration: 'none'
+                    }}
                   >
                     {item.label}
                   </Link>
@@ -158,7 +208,17 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

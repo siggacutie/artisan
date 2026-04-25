@@ -10,7 +10,10 @@ export async function debitWallet(userId: string, amount: number, description: s
     if (user.walletBalance < amount) throw new Error('Insufficient wallet balance')
     
     const updated = await tx.user.update({
-      where: { id: userId },
+      where: { 
+        id: userId,
+        walletBalance: { gte: amount } // double safety at DB level
+      },
       data: { walletBalance: { decrement: amount } },
     })
     

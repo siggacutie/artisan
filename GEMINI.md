@@ -1,7 +1,7 @@
-# GEMINI.md — Artisan.gg Project Brief
+# GEMINI.md — ArtisanStore.xyz Project Brief
 
 ## Project Overview
-Artisan.gg is a dark-themed mobile-first e-commerce platform
+ArtisanStore.xyz is a dark-themed mobile-first e-commerce platform
 for gaming top-ups and accounts. Currently launching with
 Mobile Legends Bang Bang only. More games will be added later
 via the admin panel without any code changes.
@@ -37,9 +37,10 @@ Future games: added via admin panel, zero code changes needed.
    region and show local currency. Foreign users see USD,
    MYR, PHP, AED etc. Never hardcode INR on global pages.
 
-5. Payment: Razorpay is the only gateway. No crypto.
-   No Stripe. No NowPayments. Razorpay handles UPI, cards,
-   netbanking, and international payments.
+5. Payment: The platform uses a payment gateway that supports
+   UPI, cards, netbanking, and wallets. No crypto. No Stripe.
+   Payment provider may change — never hardcode provider
+   names in UI text or user-facing copy.
 
 6. Dark theme always. Gold #ffd700 accents always.
    Never add light sections without explicit instruction.
@@ -51,16 +52,16 @@ Future games: added via admin panel, zero code changes needed.
 
 9. Never store plain text passwords or account credentials.
 
-10. All Razorpay webhooks must verify signature before
+10. All payment webhooks must verify signature before
     processing anything.
 
 11. Show savings in currency amount not percentage.
-    "You save 18" not "5% off"
+    "You save ₹18" not "5% off"
 
 12. Every page needs loading states and error states.
     No page should ever show blank content.
 
-13. Wallet pay always shows the 5% discount incentive.
+13. Wallet pay always shows the discount incentive.
     This must be visible on every checkout flow.
 
 ---
@@ -95,7 +96,7 @@ Device: Mobile-first. Most players are on mobile.
 - Delivery target: under 5 minutes
 
 ### 2. Pre-built Account Shop (DEPRECATED)
-- Account selling is currently disabled to comply with payment gateway policies.
+- Account selling is currently disabled.
 
 ---
 
@@ -108,25 +109,30 @@ Device: Mobile-first. Most players are on mobile.
 | /games/[game-slug]                 | Game Landing Page           |
 | /games/[game-slug]/topup           | Top-Up Page                 |
 | /login                             | Login                       |
-| /register                          | Register                    |
-| /forgot-password                   | Forgot Password             |
+| /invite/[token]                    | Reseller Signup             |
 | /dashboard                         | Dashboard (wallet tab)      |
 | /dashboard/orders                  | Order History               |
 | /dashboard/wallet                  | Wallet and Transactions     |
 | /dashboard/profile                 | Profile Settings            |
 | /wallet/add                        | Add Funds                   |
+| /membership                        | Membership Status           |
+| /reseller                          | Reseller Pricing            |
 | /admin                             | Admin Dashboard             |
 | /admin/games                       | Game Manager                |
-| /admin/games/[game-slug]           | Game Settings               |
 | /admin/packages                    | Package Manager             |
 | /admin/orders                      | Order Management            |
 | /admin/users                       | User Management             |
 | /admin/payments                    | Payment Approval Queue      |
 | /admin/coupons                     | Coupon Manager              |
 | /admin/banners                     | Banner Manager              |
+| /admin/pricing                     | Pricing Config              |
+| /admin/invites                     | Invite Link Manager         |
+| /admin/analytics                   | Sales Analytics             |
 | /terms                             | Terms of Service            |
 | /privacy                           | Privacy Policy              |
+| /refund                            | Refund Policy               |
 | /contact                           | Contact and Support         |
+| /banned                            | Account Suspended           |
 
 ---
 
@@ -144,77 +150,134 @@ Device: Mobile-first. Most players are on mobile.
 - Warning: #f59e0b
 - Glow gold: rgba(255,215,0,0.3)
 - Glow blue: rgba(0,195,255,0.3)
+- Muted text: #64748b
+- Subtle text: #475569
+- Faint text: #334155
+- WhatsApp green: #25d366
 
 ### Typography
 - Headings: Orbitron (bold, gaming feel)
-- Subheadings: Rajdhani
 - Body: Inter
 - Prices: Orbitron or Inter bold
 
 ### UI Rules
-- CTA buttons: gold gradient background, black bold text
+- CTA buttons: gold background (#ffd700), black bold text
 - Cards: #0d1120 bg, gold border low opacity, glow on hover
-- Hover: gold glow box-shadow + translateY(-4px) 200ms
-- Section headers: left aligned with 4px gold left border bar
+- Hover: gold glow box-shadow + translateY(-2px) 200ms ease
+- Section headers: left aligned with gold accent
 - Loading: skeleton screens for all async content
 - Errors: friendly message with retry button always
-- Animations: framer-motion for entrances and hovers only
-- No heavy libraries. Performance first.
+- Animations: framer-motion on product/dashboard pages only
+- No framer-motion on homepage, navbar, login, invite pages
+- No emojis anywhere — Lucide icons only
+- No html form tags — use div + onClick always
+- No gradient text effects
+- Content visible above fold on desktop
+
+### Card Rules
+- Vary padding and borders based on card importance
+- Primary cards: box-shadow 0 4px 32px rgba(0,0,0,0.5)
+- Add subtle top gradient line on primary cards
+- Icon containers: color-coded per semantic meaning
+  - Wallet/coins: amber (#ffd700)
+  - Security/shield: green (#22c55e)
+  - Orders/package: blue (#00c3ff)
+  - Settings: purple (#8b5cf6)
+  - Warning: orange (#f59e0b)
 
 ### Mobile
 - Design at 375px first, scale up
-- Hamburger nav with slide-in drawer on mobile
-- Bottom tab bar: Home, Games, Wallet, Profile
+- Hamburger nav or bottom tab bar on mobile
 - Touch targets minimum 44px height
 - Horizontal scroll with snap for card rows
 
 ---
 
 ## Auth System
-- Email and password registration
-- OTP email verification via Resend before first purchase
-- JWT access tokens 15 min in httpOnly cookies
-- Refresh tokens 7 days in httpOnly cookies
-- Rate limit: 5 login attempts then 15 min lockout
-- Password reset via email link expires 1 hour
-- Admin role separate from user role
-- Google OAuth in Phase 2
+
+### Reseller Auth (custom — NO NextAuth)
+- File: lib/resellerAuth.ts
+- Username + password only at /login
+- bcrypt password hashing (12 rounds)
+- Session stored in ResellerSession table
+- httpOnly cookie named reseller_session
+- Single device enforcement
+- NO Google OAuth, NO email primary login
+- Email used only for OTP/2FA verification
+- 2FA OTP sent via Resend when email is linked
+- Forgot password via email OTP flow
+- Rate limit: 5 failed attempts per 15 minutes per IP/username
+
+### Admin Auth (custom JWT)
+- File: lib/adminAuth.ts
+- Email + password at /admin/login
+- JWT cookie named admin_session, 8hr expiry
+- SUPER_ADMIN hardcoded: alandumspar@gmail.com
+
+### OTP System
+- 6-digit codes via crypto.randomInt
+- Stored in OtpCode table
+- Types: EMAIL_VERIFY, LOGIN_2FA, PASSWORD_RESET
+- Expires in 10 minutes
+- Max 5 wrong attempts before invalidation
+- Sent via Resend from noreply@artisanstore.xyz
+- In development: printed to terminal console
 
 ---
 
 ## Payment System
 
-### Provider: Razorpay only
-Handles: UPI, Credit Card, Debit Card, Net Banking,
-PayPal, international cards, Razorpay Wallet.
-No other gateway. No crypto. No Stripe. No NowPayments.
+### Architecture
+- Wallet-based: users top up wallet, then pay from balance
+- Direct checkout: DISABLED (users must use wallet balance)
+- Payment provider: Manual UPI with UTR verification & Automatic Listener
+- Never hardcode payment provider names in UI copy
+- All verification endpoints must be rate-limited and protected
 
-### Two Checkout Options
+### Wallet Top-Up
+- User selects preset amount (INR): 100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000
+- Site generates unique UPI QR code and reference (upiRef)
+- User pays via any UPI app and submits 12-digit UTR number
+- Automatic verification via Android notification listener
+- Fallback manual approval via Admin Panel
+- Wallet balance stored as INR float in database
+- Display to users: Math.floor(walletBalance) coins
+- 1 INR = 1 coin
 
-Option A — Artisan Wallet (recommended):
-User tops up wallet via Razorpay then pays from balance.
-One click checkout. No redirect. 5% discount applied.
+### Coin System
+- 1 INR = 1 coin
+- walletBalance stored as INR in DB
+- Display: Math.floor(walletBalance) + " coins"
+- Package prices in coins: Math.ceil(resellerPrice)
+- Insufficient balance check: compare raw INR values
+- Landing page shows INR with ₹ symbol (unauthenticated)
+- All authenticated pages show coins only, never ₹
 
-Option B — Direct Checkout:
-User pays per order via Razorpay redirect. No wallet needed.
+### Security Requirements
+- Amount whitelist enforced server-side only
+- Payment signature verified before any DB write
+- Order amount fetched server-side — never trust client
+- Idempotency check on all payment processing
+- Prisma $transaction for atomic wallet credits
+- Session required for all payment endpoints
+- Origin validation on all POST routes
 
-### Wallet Incentives
-- 5% instant discount on all wallet orders
-- 2% cashback on wallet orders above 500 INR or $6 USD
-- Savings shown as currency amount not percentage
-- Cashback credited within 10 minutes post order
-- Discount cannot stack with coupons, best deal wins
+### Payment Webhook
+- Always verify HMAC signature first
+- Idempotency: check referenceId before crediting
+- Atomic DB transaction for credit + transaction log
 
-### Preset Top-Up Amounts
-INR users: 100, 250, 500, 1000, 2000 + custom
-USD users: 2, 5, 10, 25, 50 + custom
-Other currencies: equivalent amounts auto-calculated
+---
 
-### Razorpay Webhook
-Event: payment.captured
-Always verify signature before processing.
-On success: update order, trigger supplier delivery,
-credit wallet if applicable, send email receipt.
+## Membership System
+
+- Resellers access platform via invite link only
+- Invite links have membershipMonths: 1, 3, 6, or 12
+- Pricing: 1mo=₹250, 3mo=₹699, 6mo=₹1299, 12mo=₹2699
+- On expiry: redirect to /membership?expired=true
+- 3 days after expiry: cron cleans up wallet, freezes account
+- Renewal payment available on /membership page
+- membershipExpiresAt stored in User table
 
 ---
 
@@ -243,92 +306,76 @@ Each game stores: supplier name, base URL,
 API credentials, product ID mapping per package,
 input field config (what player details to collect).
 
-### Environment Variables
-SMILEONE_USER_ID=""
-SMILEONE_API_KEY=""
-SMILEONE_BASE_URL="https://www.smile.one/merchant/mobilelegends"
-
 ---
 
-## Admin Panel Capabilities
-
-### Banner Manager (/admin/banners)
-Add, edit, delete promotional banners shown in the
-homepage carousel. Fields: title, subtitle, CTA text,
-CTA link, gradient start color, gradient end color,
-is active, sort order.
-
-### Game Manager (/admin/games)
-Add new games with: name, slug, cover image, description,
-is active, supplier config, input fields config.
-Toggle game visibility on storefront.
-
-### Package Manager (/admin/packages)
-Filter by game. Add, edit, delete packages.
-Fields: game, diamond amount, base price, display price,
-is visible, bonus diamonds, bonus label,
-supplier product ID, sort order.
-
-### Order Management (/admin/orders)
-View all orders. Filter by game, type, status, date.
-Mark complete, failed, or refund to wallet.
-
-### Payment Queue (/admin/payments)
-Approve or reject manual UPI submissions.
-Customer submits UTR, admin verifies, wallet credited.
+## Admin Panel
 
 ### User Management (/admin/users)
-Search users, view wallet and orders, manual wallet
-credit or debit, ban or unban.
+- Search and filter users
+- View wallet balance, orders, membership status
+- Change username, change password
+- Manual wallet credit or debit
+- Ban / unban / freeze accounts
+- Set membership duration
+- Revoke membership immediately
+- Email 2FA toggle per user (emailDisabled)
+- View user email and verification status
+- Add admin note
+
+### Invite Manager (/admin/invites)
+- Generate one-time invite links
+- Select membership duration: 1, 3, 6, 12 months
+- Toggle email requirement per invite
+- View recent invites and usage status
+
+### Package Manager (/admin/packages)
+- Filter by game
+- View packages (seeded, no manual create)
+- Fields: diamond amount, base price, display price,
+  visibility, bonus diamonds, supplier product ID
+
+### Pricing Config (/admin/pricing)
+- SmileCoin amount purchased + INR paid
+- Markup percent
+- Landing page discount percent
+- Invite link expiry hours
+
+### Order Management (/admin/orders)
+- View all orders
+- Filter by game, status, date
+- Mark complete, failed, refund to wallet
+
+### Payment Queue (/admin/payments)
+- Approve or reject payment submissions
+- Manual wallet credit on approval
 
 ### Coupon Manager (/admin/coupons)
-Create coupons with code, discount, max uses,
-expiry, min order value, applicable game.
+- Create coupons: code, discount, max uses,
+  expiry, min order value, applicable game
+
+### Banner Manager (/admin/banners)
+- Add, edit, delete banners for homepage carousel
+- Fields: title, subtitle, CTA text, CTA link,
+  gradient colors, active status, sort order
+
+### Game Manager (/admin/games)
+- Add new games with supplier config
+- Toggle game visibility on storefront
+
+### Analytics (/admin/analytics)
+- Sales overview, revenue, order counts
 
 ---
 
-## Database Schema
+## Database Models (key ones)
 
-### Users
-id, email, passwordHash, name, role (USER/ADMIN),
-emailVerified, avatarUrl, walletBalance,
-currencyPreference, isBanned, createdAt, updatedAt
+User, ResellerSession, OtpCode, InviteLink,
+AdminAccount, SmilecoinConfig, PricingConfig,
+Game, DiamondPackage, Order, WalletTransaction,
+Banner, Coupon, SupportTicket, LoginHistory,
+SuspiciousActivity, MembershipPayment, Settings
 
-### Games
-id, name, slug, description, coverImage, isActive,
-supplierName, supplierBaseUrl, supplierConfig (json),
-inputFields (json), createdAt, updatedAt
-
-### Banners
-id, title, subtitle, ctaText, ctaLink,
-gradientStart, gradientEnd, isActive,
-sortOrder, createdAt
-
-### Orders
-id, userId, gameId, type (TOPUP),
-productId, quantity, unitPrice, totalPrice,
-discountApplied, cashbackCredited, paymentMethod,
-paymentStatus, orderStatus, playerInputs (json),
-playerUsername, couponCode, supplierOrderId,
-notes, createdAt, completedAt
-
-### WalletTransactions
-id, userId, type (CREDIT/DEBIT), amount, currency,
-method, referenceId, status, description, createdAt
-
-### DiamondPackages
-id, gameId, diamondAmount, basePriceInr, displayPrice,
-isVisible, bonusDiamonds, bonusLabel,
-supplierProductId, sortOrder, createdAt
-
-### Coupons
-id, code, discountPercent, maxUses, usedCount,
-minOrderValue, expiryDate, applicableGameId (null=all),
-isActive, createdAt
-
-### SupportTickets
-id, userId, orderId, subject, status,
-messages (json), createdAt, resolvedAt
+Full schema in prisma/schema.prisma
 
 ---
 
@@ -336,68 +383,82 @@ messages (json), createdAt, resolvedAt
 
 | Layer       | Choice                                      |
 |-------------|---------------------------------------------|
-| Framework   | Next.js 14 App Router                       |
-| Styling     | Tailwind CSS + shadcn/ui                    |
+| Framework   | Next.js 16.2.2 App Router                   |
+| React       | 19.2.4                                      |
+| Styling     | Tailwind CSS 4.0 + inline styles            |
 | Database    | PostgreSQL via Supabase                     |
-| ORM         | Prisma                                      |
-| Auth        | NextAuth.js v5 + JWT                        |
-| Email       | Resend                                      |
-| Payments    | Razorpay only                               |
-| Delivery    | Smile.one API (MLBB), extensible per game   |
-| Currency    | exchangerate-api.com                        |
-| Geolocation | ip-api.com (free tier)                      |
-| Storage     | Supabase Storage (screenshots)              |
-| Encryption  | bcrypt (passwords) AES-256 (credentials)    |
-| Hosting     | Vercel + Supabase                           |
+| ORM         | Prisma 5.22.0                               |
+| Auth        | Custom (no NextAuth for resellers)          |
+| Email       | Resend (noreply@artisanstore.xyz)           |
+| Payments    | TBD — gateway being finalized              |
+| Delivery    | Smile.one API (MLBB), extensible per game  |
+| Storage     | Supabase Storage (avatars bucket, public)  |
+| Encryption  | bcrypt (passwords)                         |
+| Hosting     | Ubuntu VPS 103.165.11.203, PM2 + Nginx     |
+| Animations  | Framer Motion 12.38.0 (product pages only) |
+| State       | Zustand 5.0.12                             |
+| Live chat   | Tawk.to                                    |
 
 ---
 
 ## Environment Variables
 
 DATABASE_URL=""
+DIRECT_URL=""
 NEXTAUTH_SECRET=""
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="https://artisanstore.xyz"
 RESEND_API_KEY=""
 EMAIL_FROM="noreply@artisanstore.xyz"
-RAZORPAY_KEY_ID=""
-RAZORPAY_KEY_SECRET=""
-RAZORPAY_WEBHOOK_SECRET=""
-NEXT_PUBLIC_RAZORPAY_KEY_ID=""
-SMILEONE_USER_ID=""
-SMILEONE_API_KEY=""
+UPI_ID="noblessem@ybl"
+NEXT_PUBLIC_UPI_ID="noblessem@ybl"
+LISTENER_SECRET="artisan-listener-secret-2026"
 SMILEONE_BASE_URL="https://www.smile.one/merchant/mobilelegends"
 ENCRYPTION_KEY=""
-CURRENCY_API_KEY=""
+SUPERADMIN_PASSWORD=""
+ADMIN_JWT_SECRET=""
+NEXT_PUBLIC_SUPABASE_URL=""
+SUPABASE_SERVICE_KEY=""
+NEXT_PUBLIC_TAWK_PROPERTY_ID=""
+NEXT_PUBLIC_TAWK_WIDGET_ID=""
+DISCORD_WEBHOOK=""
+DISCORD_WEBHOOK_ERRORS=""
+SIGNUP_ALERTS_WEBHOOK=""
+AUTH_TRUST_HOST=true
+CRON_SECRET=""
+NODE_ENV="development"
 
 ---
 
-## Build Phases
+## Deployment
 
-### Phase 1 — MVP (current)
-- Project scaffold complete
-- Landing page UI (game-neutral, global appeal)
-- Auth pages UI
-- MLBB top-up page UI
-- Dashboard UI
-- Add funds page UI
-- Razorpay wallet top-up backend
-- Smile.one player verify API
-- Order creation and status flow
-- Email receipts via Resend
-- Basic admin (orders, payments, packages)
+Local → GitHub → VPS pull and rebuild
 
-### Phase 2 — Full Launch
-- Smile.one auto delivery post payment
-- Wallet discount and cashback logic
-- Coupon system
-- Full admin panel
-- Currency auto-detection
-- Banner management system
+VPS: Ubuntu 22.04, 103.165.11.203
+Served via PM2 + Nginx
+Domain: artisanstore.xyz (GoDaddy)
+GitHub: https://github.com/siggacutie/artisan (master)
+Local: C:\Users\HARSH\Downloads\Artisan
 
-### Phase 3 — Growth
-- Second game via admin (no code changes)
-- Google OAuth
-- Referral system
-- Loyalty points
-- SEO optimization
-- Push notifications
+DB Note: Use port 6543 (pooler) only. Port 5432 unreachable.
+lib/prisma.ts must use DATABASE_URL only, never DIRECT_URL.
+Never run prisma db push. Use Supabase SQL Editor only.
+Always run npx prisma generate after schema changes.
+
+---
+
+## Known Gemini Bad Behaviors — Always Guard Against
+
+- Adds fake games (Free Fire, PUBG, Valorant) — NEVER
+- Uses wrong colors — always specify every color value
+- Adds email/Google to reseller login — NEVER
+- Exports GET/POST from auth.ts — only from route.ts
+- Adds framer-motion to homepage or navbar
+- Hardcodes prices instead of fetching from API
+- Shows ₹ prices on authenticated pages (coins only)
+- Uses html form tags — always div + onClick
+- Adds unrequested features
+- Rebuilds entire files for surgical fixes
+- Uses DIRECT_URL in prisma.ts
+- Mentions payment provider names in UI copy
+- Adds light mode or light sections
+- Uses emojis in UI

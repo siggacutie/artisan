@@ -48,11 +48,13 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const { name, image } = await req.json()
+    const { name, image, autoRenew, autoRenewMonths } = await req.json()
 
     const updateData: any = {}
     if (name) updateData.name = sanitizeHtml(name)
     if (image) updateData.avatarUrl = image
+    if (typeof autoRenew === 'boolean') updateData.autoRenew = autoRenew
+    if (typeof autoRenewMonths === 'number') updateData.autoRenewMonths = autoRenewMonths
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },

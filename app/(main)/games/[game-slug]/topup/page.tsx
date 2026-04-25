@@ -12,6 +12,22 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import Navbar from '@/components/layout/Navbar'
 import { toast } from 'sonner'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
+
+const pageVariants: Variants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+}
+
+const containerVariants: Variants = {
+  animate: { transition: { staggerChildren: 0.07 } }
+}
+
+const cardVariants: Variants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+}
 
 export default function TopUpPage() {
   const [user, setUser] = useState<any>(null)
@@ -36,8 +52,6 @@ export default function TopUpPage() {
           setUser(data)
         } else {
           setUser(null)
-          // For topup page, we might want to allow viewing but not buying
-          // router.push('/login')
         }
       })
       .catch(() => setUser(null))
@@ -131,7 +145,14 @@ export default function TopUpPage() {
     <div className="min-h-screen bg-[#050810] text-white font-inter">
       <Navbar />
       
-      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24">
+      <motion.main 
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* Left Column: Form and Selection */}
@@ -146,15 +167,27 @@ export default function TopUpPage() {
                 <ChevronRight size={10} />
                 <span className="text-white">Mobile Legends</span>
               </nav>
-              <h1 className="text-4xl md:text-5xl font-black font-orbitron uppercase tracking-tighter italic">Mobile Legends</h1>
+              <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '32px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic' }}>Mobile Legends</h1>
             </div>
 
             {/* Step 1: Player Details */}
-            <Card className="bg-[#0d1120] border-white/5 rounded-[2.5rem] p-8 space-y-8">
-              <div className="flex items-center justify-between">
+            <div style={{
+              background: '#0d1120',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '24px',
+              padding: '32px',
+              boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)'
+              }} />
+              <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                  <h2 className="text-xl font-black font-orbitron uppercase tracking-tighter">1. Player Details</h2>
-                  <p className="text-[#64748b] text-xs font-medium">Enter your User ID and Zone ID</p>
+                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>1. Player Details</h2>
+                  <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Enter your User ID and Zone ID</p>
                 </div>
                 {verifiedUsername && (
                    <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-xl flex items-center gap-2">
@@ -166,7 +199,7 @@ export default function TopUpPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-[#64748b] uppercase tracking-widest ml-1">User ID</label>
+                  <label style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '4px' }}>User ID</label>
                   <Input 
                     placeholder="e.g. 12345678" 
                     value={userId}
@@ -175,7 +208,7 @@ export default function TopUpPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-[#64748b] uppercase tracking-widest ml-1">Zone ID</label>
+                  <label style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '4px' }}>Zone ID</label>
                   <Input 
                     placeholder="e.g. 1234" 
                     value={zoneId}
@@ -188,58 +221,114 @@ export default function TopUpPage() {
               <Button 
                 onClick={handleVerify}
                 disabled={!userId || !zoneId || verifying}
-                className="w-full h-14 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all"
+                style={{
+                  marginTop: '24px',
+                  width: '100%',
+                  height: '56px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '16px',
+                  color: '#ffffff',
+                  fontFamily: 'Inter',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.15s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
               >
                 {verifying ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
                 {verifying ? 'Verifying...' : 'Verify Player'}
               </Button>
 
               {verifyError && (
-                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3">
+                <div className="mt-4 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3">
                   <AlertCircle size={16} className="text-red-500" />
                   <span className="text-red-500 text-xs font-bold uppercase tracking-tight">{verifyError}</span>
                 </div>
               )}
-            </Card>
+            </div>
 
             {/* Step 2: Package Selection */}
             <div className="space-y-12">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <h2 className="text-xl font-black font-orbitron uppercase tracking-tighter">2. Select Package</h2>
-                  <p className="text-[#64748b] text-xs font-medium">Choose the amount of diamonds you want to top up</p>
+                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>2. Select Package</h2>
+                  <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Choose the amount of diamonds you want to top up</p>
                 </div>
-                <div className="bg-[#ffd700]/10 border border-[#ffd700]/20 px-4 py-2 rounded-full flex items-center gap-2">
-                   <span className="text-[#ffd700] text-[10px] font-black uppercase tracking-widest">Balance: {Math.floor(balance / 1.5)} coins</span>
-                </div>
-              </div>
+                <div style={{
+                background: 'rgba(255,215,0,0.1)',
+                border: '1px solid rgba(255,215,0,0.2)',
+                padding: '8px 16px',
+                borderRadius: '99px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+                }}>
+                 <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Balance: {Math.floor(balance)} coins</span>
+                </div>              </div>
 
               {sections.map(section => (
-                <div key={section.id} className="space-y-4">
+                <div key={section.id} className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="w-1 h-4 bg-[#ffd700] rounded-full" />
-                    <h3 className="text-sm font-black font-orbitron uppercase tracking-widest">{section.title}</h3>
+                    <h3 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '14px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase' }}>{section.title}</h3>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <motion.div 
+                    className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                    variants={containerVariants}
+                    initial="initial"
+                    animate="animate"
+                  >
                     {loadingPackages ? (
                       Array(3).fill(0).map((_, i) => <div key={i} className="h-24 bg-[#0d1120] rounded-2xl animate-pulse" />)
                     ) : (
                       packages.filter(p => p.section === section.id).map(pkg => (
-                        <div
+                        <motion.div
                           key={pkg.id}
+                          variants={cardVariants}
                           onClick={() => setSelectedPackage(pkg)}
-                          className={`p-3 md:p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-24 md:h-28 ${
-                            selectedPackage?.id === pkg.id 
-                              ? 'border-[#ffd700] bg-[#ffd700]/5 shadow-[0_0_20px_rgba(255,215,0,0.1)]' 
-                              : 'border-white/5 bg-[#0d1120] hover:border-white/20'
-                          }`}
+                          style={{
+                            background: selectedPackage?.id === pkg.id ? '#ffd700' : 'linear-gradient(135deg, #0d1120 0%, #0a0f1e 100%)',
+                            border: selectedPackage?.id === pkg.id ? '1px solid #ffd700' : '1px solid rgba(255,215,0,0.08)',
+                            borderRadius: '16px',
+                            padding: '20px',
+                            boxShadow: selectedPackage?.id === pkg.id ? '0 8px 24px rgba(255,215,0,0.15)' : '0 2px 16px rgba(0,0,0,0.3)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            height: '112px'
+                          }}
+                          onMouseEnter={e => {
+                            if (selectedPackage?.id !== pkg.id) e.currentTarget.style.borderColor = 'rgba(255,215,0,0.25)';
+                          }}
+                          onMouseLeave={e => {
+                            if (selectedPackage?.id !== pkg.id) e.currentTarget.style.borderColor = 'rgba(255,215,0,0.08)';
+                          }}
                         >
-                          <span className="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-tight line-clamp-1">{pkg.name}</span>
-                          <span className="text-lg md:text-xl font-black font-orbitron text-[#ffd700]">{Math.ceil(pkg.resellerPrice / 1.5)} coins</span>
-                        </div>
+                          <span style={{ 
+                            color: selectedPackage?.id === pkg.id ? '#050810' : '#ffffff', 
+                            fontFamily: 'Inter', 
+                            fontSize: '13px', 
+                            fontWeight: '700', 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '0.5px' 
+                          }}>{pkg.name}</span>
+                          <span style={{ 
+                            color: selectedPackage?.id === pkg.id ? '#050810' : '#ffd700', 
+                            fontFamily: 'Orbitron', 
+                            fontSize: '20px', 
+                            fontWeight: '700' 
+                          }}>{Math.ceil(pkg.resellerPrice)} coins</span>
+                        </motion.div>
                       ))
                     )}
-                  </div>
+                  </motion.div>
                 </div>
               ))}
             </div>
@@ -248,48 +337,76 @@ export default function TopUpPage() {
           {/* Right Column: Checkout */}
           <div className="lg:col-span-5 relative">
             <div className="sticky top-32 space-y-6">
-              <Card className="bg-[#0d1120] border-white/5 rounded-[2.5rem] p-6 md:p-8 space-y-6 md:space-y-8 shadow-2xl">
-                <h2 className="text-lg md:text-xl font-black font-orbitron uppercase tracking-tighter">Order Summary</h2>
+              <div style={{
+                background: '#0d1120',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '24px',
+                padding: '32px',
+                boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)'
+                }} />
+                <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '24px' }}>Order Summary</h2>
 
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-8">
                   {/* Selected Game */}
-                  <div className="flex items-center gap-4 bg-[#050810] p-3 md:p-4 rounded-2xl border border-white/5">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
-                       <Image src="/assets/games/mlbb/logo.png" alt="MLBB" width={40} height={40} />
+                  <div style={{
+                    background: 'linear-gradient(135deg, #0d1120 0%, #0a0f1e 100%)',
+                    border: '1px solid rgba(255,215,0,0.08)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '44px', height: '44px', borderRadius: '10px',
+                      background: 'linear-gradient(135deg, rgba(0,195,255,0.15), rgba(0,195,255,0.05))',
+                      border: '1px solid rgba(0,195,255,0.25)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(0,195,255,0.1)',
+                      overflow: 'hidden'
+                    }}>
+                       <Image src="/assets/games/mlbb/logo.png" alt="MLBB" width={44} height={44} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[9px] md:text-[10px] font-black text-[#64748b] uppercase tracking-widest">Selected Game</span>
-                      <span className="text-xs font-bold text-white uppercase tracking-tight">Mobile Legends</span>
+                      <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Selected Game</span>
+                      <span style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase' }}>Mobile Legends</span>
                     </div>
                   </div>
 
                   {/* Delivery Info */}
-                  <div className="space-y-1.5 md:space-y-2">
-                    <p className="text-[9px] md:text-[10px] font-black text-[#64748b] uppercase tracking-widest">Delivering To</p>
+                  <div className="space-y-2">
+                    <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Delivering To</p>
                     {verifiedUsername ? (
                       <div className="flex flex-col">
-                        <span className="text-base md:text-lg font-black font-orbitron text-white uppercase tracking-tighter italic">{verifiedUsername}</span>
-                        <span className="text-[10px] md:text-xs text-[#64748b] font-medium">ID: {userId} ({zoneId})</span>
+                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px', fontStyle: 'italic' }}>{verifiedUsername}</span>
+                        <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>ID: {userId} ({zoneId})</span>
                       </div>
                     ) : (
-                      <p className="text-xs text-[#334155] font-bold italic uppercase tracking-tight">Player not verified</p>
+                      <p style={{ color: '#475569', fontFamily: 'Inter', fontSize: '13px', fontStyle: 'italic' }}>Player not verified</p>
                     )}
                   </div>
 
                   {/* Price Breakdown */}
-                  <div className="space-y-4 pt-4 border-t border-white/5">
+                  <div className="space-y-6 pt-6 border-t border-white/5">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] md:text-xs font-bold text-[#64748b] uppercase tracking-widest">Selected Package</span>
-                      <span className="text-xs md:text-sm font-bold text-white">{selectedPackage?.name || '—'}</span>
+                      <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Selected Package</span>
+                      <span style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600' }}>{selectedPackage?.name || '—'}</span>
                     </div>
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-[10px] md:text-xs font-black text-[#64748b] uppercase tracking-widest">Total Price</span>
-                        <span className="text-3xl md:text-4xl font-black font-orbitron text-white tracking-tighter">{Math.ceil((selectedPackage?.resellerPrice || 0) / 1.5)} coins</span>
+                        <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Total Price</span>
+                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '28px', fontWeight: '700', letterSpacing: '-0.5px' }}>{Math.ceil((selectedPackage?.resellerPrice || 0))} coins</span>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                         <span className="text-[9px] md:text-[10px] font-black text-green-500 uppercase tracking-widest mb-0.5 md:mb-1">Payment Method</span>
-                         <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-tight">Artisan Wallet</span>
+                         <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Method</span>
+                         <span style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase' }}>Artisan Wallet</span>
                       </div>
                     </div>
                   </div>
@@ -298,41 +415,69 @@ export default function TopUpPage() {
                   <Button
                     onClick={handleBuy}
                     disabled={!verifiedUsername || !selectedPackage || purchasing}
-                    className={`w-full h-14 md:h-16 rounded-2xl font-black text-base md:text-lg uppercase tracking-[0.2em] shadow-2xl transition-all font-orbitron
-                      ${!verifiedUsername || !selectedPackage 
-                        ? 'bg-[#1e2535] text-[#475569] cursor-not-allowed' 
-                        : balance < selectedPackage.resellerPrice
-                          ? 'bg-red-500 text-white hover:bg-red-600'
-                          : 'bg-[#ffd700] text-[#050810] hover:scale-[1.02] shadow-[0_0_30px_rgba(255,215,0,0.2)]'
-                      }`}
+                    style={{
+                      width: '100%',
+                      height: '64px',
+                      borderRadius: '16px',
+                      fontFamily: 'Orbitron',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      letterSpacing: '2px',
+                      transition: 'all 0.15s ease',
+                      cursor: 'pointer',
+                      border: 'none',
+                      backgroundColor: (!verifiedUsername || !selectedPackage) ? '#1e2535' : (balance < selectedPackage.resellerPrice ? '#ef4444' : '#ffd700'),
+                      color: (balance < selectedPackage?.resellerPrice) ? '#ffffff' : '#050810',
+                      boxShadow: (!verifiedUsername || !selectedPackage) ? 'none' : '0 8px 32px rgba(0,0,0,0.3)',
+                    }}
+                    onMouseEnter={e => {
+                      if (verifiedUsername && selectedPackage && balance >= selectedPackage.resellerPrice) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 40px rgba(255,215,0,0.2)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (verifiedUsername && selectedPackage && balance >= selectedPackage.resellerPrice) {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
+                      }
+                    }}
                   >
                     {purchasing 
                       ? 'Processing...' 
                       : balance < (selectedPackage?.resellerPrice || 0) 
-                        ? 'Insufficient coin balance' 
+                        ? 'Insufficient coins' 
                         : selectedPackage 
-                          ? `Buy Now — ${Math.ceil(selectedPackage.resellerPrice / 1.5)} coins` 
+                          ? `Buy Now — ${Math.ceil(selectedPackage.resellerPrice)}` 
                           : 'Buy Now'
                     }
                   </Button>
 
                   {!verifiedUsername && (
-                    <p className="text-[9px] text-[#64748b] text-center uppercase tracking-widest font-black">
+                    <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', textAlign: 'center', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px' }}>
                       Verify Player details before purchasing
                     </p>
                   )}
                 </div>
-              </Card>
+              </div>
 
               {/* Security Badge */}
-              <div className="flex items-center justify-center gap-3 text-[#64748b]">
-                <Shield size={14} />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Secure Wallet Checkout</span>
+              <div className="flex items-center justify-center gap-3">
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))',
+                  border: '1px solid rgba(34,197,94,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Shield size={16} color="#22c55e" />
+                </div>
+                <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>Secure Wallet Checkout</span>
               </div>
             </div>
           </div>
         </div>
-      </main>
+      </motion.main>
       <style jsx>{`
         .bg-gold { background-color: #ffd700; }
         .text-gold { color: #ffd700; }
@@ -340,3 +485,4 @@ export default function TopUpPage() {
     </div>
   )
 }
+

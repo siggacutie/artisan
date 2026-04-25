@@ -97,7 +97,7 @@ export default function LookupPage() {
         id: txId.toUpperCase(),
         type: "CREDIT",
         amount: "1000 INR",
-        method: "Razorpay (UPI)",
+        method: "UPI (Secure Gateway)",
         refId: "pay_RX98234723",
         status: "Success",
         description: "Wallet Top Up",
