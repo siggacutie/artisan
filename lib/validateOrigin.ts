@@ -10,13 +10,20 @@ export function validateOrigin(req: Request): boolean {
   
   if (!origin && !referer) return false
   
-  if (origin) {
-    return ALLOWED_ORIGINS.some(allowed => origin === allowed || origin.startsWith(allowed))
+  const isAllowed = (url: string) => {
+    try {
+      const parsed = new URL(url)
+      return ALLOWED_ORIGINS.some(allowed => {
+        const allowedParsed = new URL(allowed)
+        return parsed.origin === allowedParsed.origin
+      })
+    } catch {
+      return false
+    }
   }
-  
-  if (referer) {
-    return ALLOWED_ORIGINS.some(allowed => referer.startsWith(allowed))
-  }
+
+  if (origin && isAllowed(origin)) return true
+  if (referer && isAllowed(referer)) return true
   
   return false
 }

@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (user.membershipExpired) {
+    return NextResponse.json({ error: 'membership_expired' }, { status: 403 })
+  }
+
   try {
     const { name } = await req.json()
 
@@ -45,6 +49,10 @@ export async function PATCH(req: NextRequest) {
   const user = await getResellerSession()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (user.membershipExpired) {
+    return NextResponse.json({ error: 'membership_expired' }, { status: 403 })
   }
 
   try {

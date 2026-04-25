@@ -5,13 +5,9 @@ import {
   Search, 
   Zap, 
   Shield, 
-  Package, 
   Gamepad2
 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { motion, Variants } from "framer-motion";
 
 const pageVariants: Variants = {
@@ -33,29 +29,26 @@ export default function GamesPage() {
   const router = useRouter();
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [hovered, setHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    fetch('/api/reseller/auth/me')
-      .then(async r => {
-        if (r.ok) {
-          const data = await r.json()
-          setUser(data)
-        } else {
-          setUser(null)
-        }
-      })
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false))
-  }, [router])
-
-  const [hovered, setHovered] = useState(false)
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-[#050810] text-white font-inter overflow-hidden">
-      <Navbar />
-      
+    <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: isMobile ? '16px' : '32px 24px',
+      minHeight: '100vh',
+      backgroundColor: '#050810',
+      boxSizing: 'border-box',
+      overflowX: 'hidden'
+    }}>
       <motion.div
         variants={pageVariants}
         initial="initial"
@@ -64,28 +57,43 @@ export default function GamesPage() {
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
         {/* PAGE HEADER */}
-        <section className="relative bg-[#0a0f1e] pt-32 pb-10 px-4 md:px-6 overflow-hidden">
+        <section style={{
+          position: 'relative',
+          background: '#0a0f1e',
+          borderRadius: '24px',
+          padding: isMobile ? '24px' : '48px',
+          marginBottom: '32px',
+          overflow: 'hidden',
+          border: '1px solid rgba(255,215,0,0.05)',
+        }}>
           <div style={{
             position: 'absolute', inset: 0, borderRadius: 'inherit',
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
             opacity: 0.4,
             pointerEvents: 'none',
           }} />
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '12px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <div className="relative z-10">
+            <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '10px', fontWeight: '600', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>
               CATALOGUE
             </div>
-            <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '32px', fontWeight: '700', letterSpacing: '1px', margin: 0, textTransform: 'uppercase' }}>
+            <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '24px' : '32px', fontWeight: '700', letterSpacing: '1px', margin: 0, textTransform: 'uppercase' }}>
               All Games
             </h1>
-            <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '14px', marginTop: '8px' }}>
+            <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: isMobile ? '13px' : '14px', marginTop: '8px' }}>
               Top up credits for your favorite games instantly.
             </p>
             
             {/* Stats Row */}
-            <div className="flex flex-wrap items-center gap-8 mt-8">
-              <div className="flex flex-col pr-8 border-r border-white/5">
-                <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '28px', fontWeight: '700', letterSpacing: '-0.5px' }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              flexWrap: 'wrap',
+              alignItems: isMobile ? 'flex-start' : 'center',
+              gap: isMobile ? '16px' : '32px',
+              marginTop: '32px'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', paddingRight: isMobile ? 0 : '32px', borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: isMobile ? '22px' : '28px', fontWeight: '700', letterSpacing: '-0.5px' }}>
                   1
                 </div>
                 <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '10px', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>
@@ -93,42 +101,46 @@ export default function GamesPage() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '36px', height: '36px', borderRadius: '8px',
                   background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))',
                   border: '1px solid rgba(34,197,94,0.25)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(34,197,94,0.1)',
                 }}>
                   <Zap size={16} color="#22c55e" />
                 </div>
-                <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600' }}>Instant Delivery</span>
+                <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>Instant Delivery</span>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '36px', height: '36px', borderRadius: '8px',
                   background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05))',
                   border: '1px solid rgba(255,215,0,0.25)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(255,215,0,0.1)',
                 }}>
                   <Shield size={16} color="#ffd700" />
                 </div>
-                <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600' }}>Secure Payments</span>
+                <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>Secure Payments</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* SEARCH AND FILTER BAR */}
-        <section className="py-8 px-6 max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <section style={{ marginBottom: '32px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'stretch' : 'center',
+            justifyContent: 'space-between',
+            gap: '16px'
+          }}>
             {/* Search Input */}
-            <div className="relative w-full max-w-md">
+            <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : '400px' }}>
               <Search 
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]" 
+                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#334155' }} 
                 size={18} 
               />
               <input 
@@ -141,20 +153,18 @@ export default function GamesPage() {
                   background: '#0d1120',
                   border: '1px solid rgba(255,215,0,0.1)',
                   borderRadius: '12px',
-                  padding: '12px 16px 12px 44px',
+                  padding: '12px 16px 12px 48px',
                   color: '#ffffff',
                   fontFamily: 'Inter',
                   fontSize: '14px',
                   outline: 'none',
-                  transition: 'border-color 0.2s ease',
+                  boxSizing: 'border-box',
                 }}
-                onFocus={(e) => e.target.style.borderColor = 'rgba(255,215,0,0.3)'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255,215,0,0.1)'}
               />
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: isMobile ? '8px' : 0 }}>
               {['ALL', 'TOP UP'].map((t) => (
                 <button
                   key={t}
@@ -171,12 +181,7 @@ export default function GamesPage() {
                     color: filter === t ? '#050810' : '#64748b',
                     borderColor: filter === t ? 'transparent' : 'rgba(255,255,255,0.05)',
                     cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (filter !== t) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (filter !== t) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {t}
@@ -187,13 +192,17 @@ export default function GamesPage() {
 
           {/* GAMES GRID */}
           <motion.div 
-            className="mt-8"
+            style={{ marginTop: '32px' }}
             variants={containerVariants}
             initial="initial"
             animate="animate"
           >
             {/* MLBB GAME CARD */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: isMobile ? '16px' : '24px',
+            }}>
               <motion.div 
                 variants={cardVariants}
                 onClick={() => router.push('/games/mobile-legends/topup')}
@@ -201,21 +210,18 @@ export default function GamesPage() {
                   background: '#0d1120',
                   border: '1px solid rgba(255,255,255,0.06)',
                   borderRadius: '16px',
-                  padding: 0,
                   boxShadow: hovered 
                     ? '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,0,0.15)' 
-                    : '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+                    : '0 4px 32px rgba(0,0,0,0.5)',
                   position: 'relative',
                   overflow: 'hidden',
-                  height: '240px',
+                  height: isMobile ? '200px' : '260px',
                   cursor: 'pointer',
                   transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                onMouseDown={e => e.currentTarget.style.transform = 'translateY(-2px) scale(0.98)'}
-                onMouseUp={e => e.currentTarget.style.transform = 'translateY(-2px) scale(1)'}
               >
                 <div style={{
                   position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
@@ -225,57 +231,63 @@ export default function GamesPage() {
 
                 {/* Background Image */}
                 <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                   style={{ 
+                    position: 'absolute', inset: 0,
                     backgroundImage: "url('/assets/games/mlbb/bg.jpg')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     transform: hovered ? 'scale(1.05)' : 'scale(1)',
+                    transition: 'transform 0.5s ease'
                   }}
                 />
                 
                 {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#050810]/95 via-[#050810]/80 to-transparent" />
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(90deg, #050810 0%, #050810 30%, transparent 100%)',
+                  opacity: 0.9
+                }} />
 
                 {/* Content */}
-                <div className="relative z-10 p-6 md:p-10 h-full flex flex-col justify-center">
+                <div style={{ position: 'relative', zIndex: 10, padding: isMobile ? '20px' : '32px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <img 
                     src="/assets/games/mlbb/logo.png" 
                     alt="MLBB" 
-                    style={{ width: '48px', height: '48px', borderRadius: '12px', marginBottom: '16px' }}
+                    style={{ width: '40px', height: '40px', borderRadius: '10px', marginBottom: '12px' }}
                   />
                   
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '1px', margin: 0, textTransform: 'uppercase', fontStyle: 'italic' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                    <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '18px' : '24px', fontWeight: '700', letterSpacing: '1px', margin: 0, textTransform: 'uppercase', fontStyle: 'italic' }}>
                       Mobile Legends
                     </h2>
-                    <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '10px', fontWeight: '700', backgroundColor: 'rgba(255,215,0,0.1)', borderRadius: '4px', padding: '4px 8px' }}>
+                    <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '9px', fontWeight: '700', backgroundColor: 'rgba(255,215,0,0.1)', borderRadius: '4px', padding: '2px 6px', textTransform: 'uppercase' }}>
                       MOBA
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
-                    <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '10px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                    <div style={{ width: '6px', height: '6px', background: '#22c55e', borderRadius: '50%' }} />
+                    <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '9px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
                       ACTIVE
                     </span>
                   </div>
 
-                  <div className="mt-6">
+                  <div style={{ marginTop: '24px' }}>
                     <button style={{ 
                       backgroundColor: '#ffd700', 
                       color: '#050810', 
                       fontFamily: 'Inter', 
-                      fontSize: '14px', 
+                      fontSize: '12px', 
                       fontWeight: '700', 
-                      padding: '10px 24px', 
+                      padding: '8px 20px', 
                       borderRadius: '8px', 
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '8px',
-                      transition: 'all 0.15s ease',
                       border: 'none',
                       cursor: 'pointer'
                     }}>
-                      <Zap size={14} />
+                      <Zap size={12} />
                       Top Up
                     </button>
                   </div>
@@ -285,12 +297,6 @@ export default function GamesPage() {
           </motion.div>
         </section>
       </motion.div>
-      
-      <MobileBottomNav />
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap');
-      `}</style>
     </div>
   );
 }

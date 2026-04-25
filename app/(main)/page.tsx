@@ -20,6 +20,14 @@ export default function HomePage() {
   const [packages, setPackages] = useState<PackageItem[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [activeTab, setActiveTab] = useState<'standard' | 'double' | 'weekly'>('standard')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     fetch('/api/reseller/auth/me')
@@ -67,19 +75,21 @@ export default function HomePage() {
   const filteredPackages = packages.filter(p => p.section === activeTab)
 
   return (
-    <div className="min-h-screen bg-[#050810] text-white font-inter">
-      {/* Navbar */}
-      <nav className="p-6 border-b border-white/5 flex justify-between items-center max-w-7xl mx-auto">
-        <div className="text-xl font-black font-orbitron">
-          ARTISAN<span className="text-gold">store</span><span className="text-[10px] text-[#64748b] ml-1">.xyz</span>
-        </div>
-        <Link href="/login" className="border border-gold/20 text-gold font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-gold/5 transition-all">
-          Login
-        </Link>
-      </nav>
-
+    <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: isMobile ? '16px' : '32px 24px',
+      minHeight: '100vh',
+      backgroundColor: '#050810',
+      boxSizing: 'border-box'
+    }}>
       {/* Hero Section */}
-      <section className="relative py-24 px-6 max-w-5xl mx-auto text-center space-y-8 overflow-hidden">
+      <section style={{
+        position: 'relative',
+        padding: isMobile ? '48px 16px' : '80px 24px',
+        textAlign: 'center',
+        overflow: 'hidden'
+      }}>
         {/* Noise Texture Overlay */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 5,
@@ -92,13 +102,13 @@ export default function HomePage() {
           <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '10px', fontWeight: '900', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '16px' }}>
             Reseller Platform
           </div>
-          <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', lineHeight: '1.1' }} className="text-4xl md:text-6xl">
+          <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', lineHeight: '1.1', fontSize: isMobile ? '28px' : '48px' }}>
             MLBB Diamonds at<br />Wholesale Rates
           </h1>
-          <p style={{ color: '#94a3b8', fontFamily: 'Inter', maxWidth: '600px', margin: '24px auto 0', lineHeight: '1.6' }} className="text-base md:text-lg">
+          <p style={{ color: '#94a3b8', fontFamily: 'Inter', maxWidth: '600px', margin: '24px auto 0', lineHeight: '1.6', fontSize: isMobile ? '14px' : '16px' }}>
             Verified resellers get access to our lowest prices. Apply via WhatsApp to get started.
           </p>
-          <div className="pt-10">
+          <div style={{ paddingTop: '40px' }}>
             <a 
               href="https://wa.me/919387606432" 
               target="_blank" 
@@ -117,11 +127,8 @@ export default function HomePage() {
                 alignItems: 'center',
                 gap: '12px',
                 textDecoration: 'none',
-                transition: 'all 0.2s ease',
                 boxShadow: '0 8px 32px rgba(37, 211, 102, 0.2)'
               }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <MessageCircle size={20} />
               Apply for Access
@@ -131,35 +138,34 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Table Section */}
-      <section className="py-24 px-6 max-w-5xl mx-auto space-y-16">
-        <div style={{ borderLeft: '4px solid #ffd700', paddingLeft: '24px' }}>
-          <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>Reseller Pricing</h2>
-          <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', fontWeight: '600', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Prices updated automatically. All amounts in INR.</p>
+      <section style={{ padding: isMobile ? '48px 16px' : '80px 24px' }}>
+        <div style={{ borderLeft: '4px solid #ffd700', paddingLeft: '24px', marginBottom: '48px' }}>
+          <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '20px' : '24px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' }}>Reseller Pricing</h2>
+          <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', fontWeight: '600', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>INR Prices updated automatically.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-3">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
           {[
-            { id: 'standard', label: 'Diamond Top-Up' },
-            { id: 'double', label: 'Double Diamond' },
-            { id: 'weekly', label: 'Weekly & Monthly' }
+            { id: 'standard', label: 'Diamond' },
+            { id: 'double', label: 'Double' },
+            { id: 'weekly', label: 'Weekly' }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               style={{
-                padding: '12px 28px',
+                padding: '10px 24px',
                 borderRadius: '12px',
                 fontFamily: 'Inter',
                 fontSize: '11px',
                 fontWeight: '900',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                transition: 'all 0.2s ease',
-                cursor: 'pointer',
                 backgroundColor: activeTab === tab.id ? '#ffd700' : '#0d1120',
                 color: activeTab === tab.id ? '#050810' : '#64748b',
                 border: activeTab === tab.id ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                whiteSpace: 'nowrap'
               }}
             >
               {tab.label}
@@ -168,22 +174,9 @@ export default function HomePage() {
         </div>
 
         {loadingPackages ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
             {Array(6).fill(0).map((_, i) => (
-              <div key={i} style={{
-                background: '#0d1120',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '16px',
-                height: '96px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%)',
-                  animation: 'shimmer 1.5s infinite',
-                }} />
-              </div>
+              <div key={i} style={{ background: '#0d1120', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', height: '96px' }} />
             ))}
           </div>
         ) : filteredPackages.length === 0 ? (
@@ -191,7 +184,7 @@ export default function HomePage() {
             Prices temporarily unavailable
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
             {filteredPackages.map((pkg) => (
               <div 
                 key={pkg.id} 
@@ -200,19 +193,9 @@ export default function HomePage() {
                   border: '1px solid rgba(255,215,0,0.08)',
                   borderRadius: '16px',
                   padding: '24px',
-                  boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = 'rgba(255,215,0,0.2)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = 'rgba(255,215,0,0.08)';
-                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <div style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>{pkg.name}</div>
@@ -222,33 +205,38 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="pt-12 text-center space-y-6">
-          <p className="text-white font-medium">Want these prices? Join as a reseller.</p>
-          <a href="https://wa.me/919387606432" target="_blank" rel="noopener noreferrer" className="bg-[#25d366] text-white font-black text-sm uppercase tracking-widest px-10 py-4 rounded-xl inline-flex items-center gap-3 shadow-lg hover:scale-105 transition-all">
+        <div style={{ marginTop: '64px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
+          <p style={{ color: '#ffffff', fontWeight: '500' }}>Want these prices? Join as a reseller.</p>
+          <a href="https://wa.me/919387606432" target="_blank" rel="noopener noreferrer" style={{
+            backgroundColor: '#25d366',
+            color: '#ffffff',
+            fontFamily: 'Inter',
+            fontSize: '13px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            padding: '16px 40px',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            boxShadow: '0 8px 32px rgba(37, 211, 102, 0.2)'
+          }}>
             Apply on WhatsApp
           </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-white/5 text-center">
-        <p className="text-[#64748b] text-sm">
-          Already have an account? <Link href="/login" className="text-gold font-bold hover:underline">Sign in here</Link>
+      <footer style={{ padding: '40px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+        <p style={{ color: '#64748b', fontSize: '14px' }}>
+          Already have an account? <Link href="/login" style={{ color: '#ffd700', fontWeight: '700', textDecoration: 'none' }}>Sign in here</Link>
         </p>
-        <div className="flex gap-6 justify-center flex-wrap mt-4">
-          <Link href="/terms" className="font-inter text-[13px] text-[#475569] no-underline hover:text-[#64748b]">Terms of Service</Link>
-          <span className="text-[#334155]"> · </span>
-          <Link href="/privacy" className="font-inter text-[13px] text-[#475569] no-underline hover:text-[#64748b]">Privacy Policy</Link>
-          <span className="text-[#334155]"> · </span>
-          <Link href="/refund" className="font-inter text-[13px] text-[#475569] no-underline hover:text-[#64748b]">Refund Policy</Link>
-          <span className="text-[#334155]"> · </span>
-          <Link href="/contact" className="font-inter text-[13px] text-[#475569] no-underline hover:text-[#64748b]">Contact</Link>
+        <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
+          <Link href="/terms" style={{ color: '#475569', fontSize: '13px', textDecoration: 'none' }}>Terms</Link>
+          <Link href="/privacy" style={{ color: '#475569', fontSize: '13px', textDecoration: 'none' }}>Privacy</Link>
+          <Link href="/refund" style={{ color: '#475569', fontSize: '13px', textDecoration: 'none' }}>Refund</Link>
+          <Link href="/contact" style={{ color: '#475569', fontSize: '13px', textDecoration: 'none' }}>Contact</Link>
         </div>
       </footer>
-      <style jsx>{`
-        .bg-gold { background-color: #ffd700; }
-        .text-gold { color: #ffd700; }
-      `}</style>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { securityLog } from '@/lib/securityLog'
 import { rateLimit } from '@/lib/rateLimit'
 import { validators, sanitizeHtml } from '@/lib/validate'
 import { getPackagesWithPrices } from '@/lib/pricing'
+import { sendDiscord } from '@/lib/discord'
 
 export async function POST(req: NextRequest) {
   if (!validateOrigin(req)) {
@@ -15,6 +16,10 @@ export async function POST(req: NextRequest) {
 
   const user = await getResellerSession()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (user.membershipExpired) {
+    return NextResponse.json({ error: 'membership_expired' }, { status: 403 })
+  }
 
   const rl = rateLimit(`order:${user.id}`, 5, 60 * 1000)
   if (!rl.allowed) {
@@ -28,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Get current user details from DB to check restrictions and balance
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, role: true, isBanned: true, walletBalance: true },
+      select: { id: true, username: true, role: true, isBanned: true, walletBalance: true },
     })
 
     if (!dbUser || dbUser.isBanned) {
@@ -60,13 +65,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid package selected' }, { status: 400 })
     }
 
-    if (!validators.playerId(playerId) || !validators.zoneId(zoneId) || !validators.username(username)) {
+    if (!validators.playerId(playerId) || !validators.zoneId(zoneId)) {
       securityLog('INVALID_INPUT', { userId: user.id, packageId, playerId, zoneId })
       return NextResponse.json({ error: 'Invalid input details' }, { status: 400 })
     }
 
     const finalPrice = isReseller ? pkg.resellerPrice : pkg.userPrice
-    const safeUsername = sanitizeHtml(username)
+    const safeUsername = username ? sanitizeHtml(username) : 'N/A'
 
     // Idempotency check
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
@@ -74,12 +79,8 @@ export async function POST(req: NextRequest) {
       where: {
         userId: user.id,
         productId: pkg.supplierProductId,
-        paymentStatus: 'PENDING',
+        orderStatus: 'PENDING',
         createdAt: { gte: fiveMinutesAgo },
-        playerInputs: {
-          path: ['playerId'],
-          equals: playerId,
-        },
       },
     })
 
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         duplicate: true,
-        message: 'You have a pending order for this package. Please complete or wait 5 minutes before retrying.',
+        message: 'You have a pending order for this package. Please wait a moment.',
         dbOrderId: duplicateOrder.id,
       }, { status: 200 })
     }
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     // ONLY Wallet Payment is allowed now
     if (paymentMethod !== 'wallet') {
-      return NextResponse.json({ error: 'Direct payment disabled. Please top up your wallet first.' }, { status: 400 })
+      return NextResponse.json({ error: 'Direct payment disabled.' }, { status: 400 })
     }
 
     if (dbUser.walletBalance < finalPrice) {
@@ -115,7 +116,6 @@ export async function POST(req: NextRequest) {
 
     try {
       const order = await prisma.$transaction(async (tx) => {
-        // Double safety at DB level
         await tx.user.update({
           where: { 
             id: user.id,
@@ -158,10 +158,23 @@ export async function POST(req: NextRequest) {
         return newOrder
       })
 
+      // Send Discord notification
+      await sendDiscord('order', {
+        title: 'New Order Created',
+        color: 0x00c3ff,
+        fields: [
+          { name: 'User', value: dbUser.username || dbUser.id, inline: true },
+          { name: 'Package', value: pkg.label, inline: true },
+          { name: 'Player ID', value: `${playerId} (${zoneId})`, inline: true },
+          { name: 'Amount', value: `${Math.ceil(finalPrice)} coins`, inline: true },
+          { name: 'Order ID', value: order.id, inline: false },
+        ],
+      }, 'ArtisanStore Orders')
+
       return NextResponse.json({
         success: true,
         orderId: order.id,
-        message: 'Order placed successfully using wallet balance'
+        message: 'Order placed successfully'
       })
     } catch (error: any) {
       if (error.code === 'P2025') {
@@ -171,6 +184,14 @@ export async function POST(req: NextRequest) {
     }
   } catch (err: any) {
     console.error('Order creation error:', err)
-    return NextResponse.json({ error: err.message ?? 'Order creation failed' }, { status: 500 })
+    await sendDiscord('error', {
+      title: 'Order Creation Failed',
+      color: 0xef4444,
+      fields: [
+        { name: 'User', value: user.id, inline: true },
+        { name: 'Error', value: err.message ?? 'Unknown error', inline: false },
+      ],
+    }, 'ArtisanStore System')
+    return NextResponse.json({ error: 'Order creation failed' }, { status: 500 })
   }
 }

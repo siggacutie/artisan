@@ -18,6 +18,11 @@ export async function PATCH(
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+    // Block actions on SuperAdmin
+    if (user.email === 'alandumspar@gmail.com') {
+      return NextResponse.json({ error: 'Actions on SuperAdmin account are restricted' }, { status: 403 })
+    }
+
     // Build update object — only include fields that are explicitly provided
     const updateData: Record<string, unknown> = {}
 
@@ -171,6 +176,11 @@ export async function DELETE(
 
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    // Block actions on SuperAdmin
+    if (user.email === 'alandumspar@gmail.com') {
+      return NextResponse.json({ error: 'Actions on SuperAdmin account are restricted' }, { status: 403 })
+    }
 
     // Delete all related data then user
     await prisma.$transaction([

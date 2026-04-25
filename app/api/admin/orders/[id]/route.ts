@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/adminAuth'
 import { securityLog } from '@/lib/securityLog'
-
 import { validateOrigin } from '@/lib/validateOrigin'
+import { sendDiscord } from '@/lib/discord'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -15,7 +15,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   try {
     const currentOrder = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: { user: true }
     })
 
     if (!currentOrder) {
@@ -33,7 +34,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
       })
 
-      // If status changed to REFUNDED, credit user wallet
       if (orderStatus === 'REFUNDED' && currentOrder.orderStatus !== 'REFUNDED') {
         await tx.user.update({
           where: { id: currentOrder.userId },
@@ -55,9 +55,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return updated
     })
 
+    if (orderStatus && orderStatus !== currentOrder.orderStatus) {
+      await sendDiscord('order', {
+        title: `Order ${orderStatus}`,
+        color: orderStatus === 'COMPLETED' ? 0x22c55e : (orderStatus === 'REFUNDED' ? 0xf59e0b : 0x00c3ff),
+        fields: [
+          { name: 'User', value: currentOrder.user.username || currentOrder.userId, inline: true },
+          { name: 'Order ID', value: orderId, inline: true },
+          { name: 'Status', value: orderStatus, inline: true },
+          { name: 'Admin', value: admin.email, inline: true },
+        ],
+      }, 'ArtisanStore Admin')
+    }
+
     securityLog('ADMIN_ORDER_UPDATE', { adminId: admin.id, orderId, status: orderStatus })
     return NextResponse.json(updatedOrder)
   } catch (err) {
+    console.error('Order update error:', err)
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 })
   }
 }

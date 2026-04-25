@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminAuth'
 import { prisma } from '@/lib/prisma'
+import { sendDiscord } from '@/lib/discord'
+
+import { validateOrigin } from '@/lib/validateOrigin'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const session = await getAdminSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -44,6 +48,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }),
     ])
 
+    await sendDiscord('payment', {
+      title: 'Manual Payment Confirmed',
+      color: 0x22c55e,
+      fields: [
+        { name: 'User', value: payment.user.username || payment.userId, inline: true },
+        { name: 'Amount', value: `Rs ${payment.amount}`, inline: true },
+        { name: 'UTR', value: payment.utrNumber ?? 'N/A', inline: false },
+        { name: 'Approved By', value: session.email, inline: true },
+      ],
+    }, 'ArtisanStore Admin')
+
     return NextResponse.json({ success: true })
   }
 
@@ -52,6 +67,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id: payment.id },
       data: { status: 'EXPIRED' },
     })
+
+    await sendDiscord('payment', {
+      title: 'Manual Payment Rejected',
+      color: 0xef4444,
+      fields: [
+        { name: 'User', value: payment.user.username || payment.userId, inline: true },
+        { name: 'Amount', value: `Rs ${payment.amount}`, inline: true },
+        { name: 'UTR', value: payment.utrNumber ?? 'N/A', inline: false },
+        { name: 'Rejected By', value: session.email, inline: true },
+      ],
+    }, 'ArtisanStore Admin')
+
     return NextResponse.json({ success: true })
   }
 

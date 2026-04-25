@@ -147,5 +147,21 @@
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease forwards;
+animation: fadeIn 0.3s ease forwards;
 }
+
+@media (max-width: 767px) {
+.mobile-bottom-padding {
+  padding-bottom: 70px;
+}
+}
+
+/* Tawk.to mobile adjustment */
+@media (max-width: 768px) {
+  #tawkchat-container, 
+  .tawk-min-container,
+  iframe[title="chat widget"] {
+    bottom: 80px !important;
+  }
+}
+

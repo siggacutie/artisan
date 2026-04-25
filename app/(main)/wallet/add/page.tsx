@@ -1,12 +1,11 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Coins, QrCode, Copy, CheckCircle, AlertTriangle, Info, ArrowLeft, RefreshCw } from 'lucide-react'
+import { Coins, Copy, CheckCircle, AlertTriangle, Info, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 
 const AMOUNTS = [1, 100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 
-// UTR Help Modal content
 const UTR_HELP = [
   {
     app: 'PhonePe',
@@ -52,11 +51,19 @@ export default function AddFundsPage() {
   const [utrSubmitting, setUtrSubmitting] = useState(false)
   const [showUtrHelp, setShowUtrHelp] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(1800) // 30 min in seconds
+  const [timeLeft, setTimeLeft] = useState(1800)
   const [pollStatus, setPollStatus] = useState<string>('PENDING')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Countdown timer
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   useEffect(() => {
     if (step !== 'pay') return
     const interval = setInterval(() => {
@@ -71,7 +78,6 @@ export default function AddFundsPage() {
     return () => clearInterval(interval)
   }, [step])
 
-  // Poll payment status every 8 seconds
   useEffect(() => {
     if (step !== 'pay' || !paymentData) return
 
@@ -83,14 +89,11 @@ export default function AddFundsPage() {
           if (pollRef.current) clearInterval(pollRef.current)
           setPollStatus('COMPLETED')
           setStep('done')
-          toast.success(`Deposit of ${paymentData.amount} coins successful!`, {
-            position: 'top-right',
-            duration: 5000,
-          })
+          toast.success(`Deposit of ${paymentData.amount} coins successful!`)
         } else if (data.status === 'EXPIRED') {
           if (pollRef.current) clearInterval(pollRef.current)
           setPollStatus('EXPIRED')
-          setError('This payment link has expired. Please go back and create a new one.')
+          setError('Payment expired. Create a new one.')
         }
       } catch {}
     }, 8000)
@@ -116,21 +119,21 @@ export default function AddFundsPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Failed to create payment. Please try again.')
+        setError(data.error || 'Failed to create payment.')
         return
       }
       setPaymentData(data)
       setTimeLeft(1800)
       setStep('pay')
     } catch {
-      setError('Network error. Please try again.')
+      setError('Network error.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleCopyUPI = () => {
-    const upiId = 'noblessem@ybl' // Use fallback or fetch from API if possible
+    const upiId = 'noblessem@ybl'
     navigator.clipboard.writeText(upiId)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -141,12 +144,12 @@ export default function AddFundsPage() {
     const cleaned = utr.trim().toUpperCase()
 
     if (!cleaned) {
-      setUtrError('Please enter your UTR number.')
+      setUtrError('Please enter your UTR.')
       return
     }
 
     if (!/^[A-Z0-9]{12,22}$/.test(cleaned)) {
-      setUtrError('Invalid UTR format. UTR is 12-22 alphanumeric characters. Make sure you are entering the UTR number and NOT the Transaction ID.')
+      setUtrError('Invalid UTR format.')
       return
     }
 
@@ -159,14 +162,13 @@ export default function AddFundsPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setUtrError(data.error || 'Failed to submit UTR.')
+        setUtrError(data.error || 'Submission failed.')
         return
       }
-      // UTR submitted — wait for confirmation via polling
       setUtrError('')
       toast.info('UTR submitted. Waiting for confirmation...')
     } catch {
-      setUtrError('Network error. Please try again.')
+      setUtrError('Network error.')
     } finally {
       setUtrSubmitting(false)
     }
@@ -176,13 +178,13 @@ export default function AddFundsPage() {
     <div style={{
       maxWidth: '480px',
       margin: '0 auto',
-      padding: '32px 24px',
+      padding: isMobile ? '16px' : '32px 24px',
       minHeight: '100vh',
       backgroundColor: '#050810',
+      boxSizing: 'border-box'
     }}>
       <AnimatePresence mode="wait">
 
-        {/* STEP 1: Select Amount */}
         {step === 'select' && (
           <motion.div
             key="select"
@@ -192,7 +194,7 @@ export default function AddFundsPage() {
             transition={{ duration: 0.25 }}
           >
             <div style={{ marginBottom: '28px' }}>
-              <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '700', marginBottom: '6px' }}>
+              <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: isMobile ? '18px' : '20px', fontWeight: '700', marginBottom: '6px' }}>
                 Add Coins
               </div>
               <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '14px' }}>
@@ -213,27 +215,12 @@ export default function AddFundsPage() {
                     textAlign: 'center',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    boxShadow: selectedAmount === amount ? '0 0 0 1px rgba(255,215,0,0.3)' : 'none',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  {amount === 1 && (
-                    <div style={{
-                      fontSize: '9px',
-                      fontFamily: 'Inter',
-                      color: '#f59e0b',
-                      background: 'rgba(245,158,11,0.1)',
-                      border: '1px solid rgba(245,158,11,0.2)',
-                      borderRadius: '4px',
-                      padding: '1px 5px',
-                      marginBottom: '4px',
-                    }}>
-                      TEST
-                    </div>
-                  )}
                   <div style={{ color: selectedAmount === amount ? '#ffd700' : '#e2e8f0', fontFamily: 'Orbitron', fontSize: '15px', fontWeight: '700' }}>
                     {amount}
                   </div>
@@ -273,7 +260,6 @@ export default function AddFundsPage() {
           </motion.div>
         )}
 
-        {/* STEP 2: Pay */}
         {step === 'pay' && paymentData && (
           <motion.div
             key="pay"
@@ -289,7 +275,6 @@ export default function AddFundsPage() {
               <ArrowLeft size={14} /> Back
             </div>
 
-            {/* Timer */}
             <div style={{
               background: timeLeft < 300 ? 'rgba(239,68,68,0.08)' : 'rgba(255,215,0,0.06)',
               border: `1px solid ${timeLeft < 300 ? 'rgba(239,68,68,0.2)' : 'rgba(255,215,0,0.15)'}`,
@@ -306,7 +291,6 @@ export default function AddFundsPage() {
               </span>
             </div>
 
-            {/* Amount */}
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '32px', fontWeight: '700' }}>
                 ₹{paymentData.amount}
@@ -316,7 +300,6 @@ export default function AddFundsPage() {
               </div>
             </div>
 
-            {/* QR Code */}
             <div style={{
               background: '#ffffff',
               borderRadius: '16px',
@@ -330,7 +313,6 @@ export default function AddFundsPage() {
               <img src={paymentData.qrDataUrl} alt="UPI QR Code" style={{ width: '220px', height: '220px' }} />
             </div>
 
-            {/* UPI ID copy */}
             <div style={{
               background: '#0d1120',
               border: '1px solid rgba(255,255,255,0.06)',
@@ -352,12 +334,10 @@ export default function AddFundsPage() {
               </div>
             </div>
 
-            {/* Reference */}
             <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', textAlign: 'center', marginBottom: '20px' }}>
-              Add note: <span style={{ color: '#ffd700', fontWeight: '600' }}>{paymentData.upiRef}</span> (optional but helps)
+              Add note: <span style={{ color: '#ffd700', fontWeight: '600' }}>{paymentData.upiRef}</span>
             </div>
 
-            {/* Open in UPI app button */}
             <a
               href={paymentData.upiLink}
               style={{
@@ -378,7 +358,6 @@ export default function AddFundsPage() {
               Open in UPI App
             </a>
 
-            {/* UTR Entry */}
             <div style={{
               background: '#0d1120',
               border: '1px solid rgba(255,255,255,0.06)',
@@ -392,18 +371,6 @@ export default function AddFundsPage() {
                 </div>
                 <div onClick={() => setShowUtrHelp(true)} style={{ cursor: 'pointer', color: '#475569' }}>
                   <Info size={16} />
-                </div>
-              </div>
-
-              <div style={{
-                background: 'rgba(245,158,11,0.08)',
-                border: '1px solid rgba(245,158,11,0.15)',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                marginBottom: '12px',
-              }}>
-                <div style={{ color: '#f59e0b', fontFamily: 'Inter', fontSize: '12px', lineHeight: '1.5' }}>
-                  Enter your UTR number after completing the payment. Do NOT enter the Transaction ID — the UTR is a 12-digit number found in your payment app history.
                 </div>
               </div>
 
@@ -457,7 +424,6 @@ export default function AddFundsPage() {
           </motion.div>
         )}
 
-        {/* STEP 3: Done */}
         {step === 'done' && (
           <motion.div
             key="done"
@@ -466,20 +432,15 @@ export default function AddFundsPage() {
             transition={{ duration: 0.3 }}
             style={{ textAlign: 'center', paddingTop: '60px' }}
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-              style={{
-                width: '80px', height: '80px', borderRadius: '50%',
-                background: 'rgba(34,197,94,0.15)',
-                border: '2px solid rgba(34,197,94,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 24px',
-              }}
-            >
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%',
+              background: 'rgba(34,197,94,0.15)',
+              border: '2px solid rgba(34,197,94,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 24px',
+            }}>
               <CheckCircle size={40} color="#22c55e" />
-            </motion.div>
+            </div>
             <div style={{ color: '#22c55e', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>
               Payment Confirmed
             </div>
@@ -501,7 +462,6 @@ export default function AddFundsPage() {
 
       </AnimatePresence>
 
-      {/* UTR Help Modal */}
       {showUtrHelp && (
         <div
           onClick={() => setShowUtrHelp(false)}

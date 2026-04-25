@@ -1,0 +1,8 @@
+{
+  "id": "fix_games_page_ts_error_20260425",
+  "title": "Fix TypeScript Error in Games Page",
+  "description": "Resolve the 'pr' property type error in app/(main)/games/page.tsx as reported in prompt3.md",
+  "status": "completed",
+  "author": "Gemini CLI",
+  "created_at": "2026-04-25T23:47:00Z"
+}

@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/validateOrigin'
 import { checkOtpBruteForce, recordOtpFailure, clearOtpAttempts } from '@/lib/validate'
 import { createResellerSession, setSessionCookie } from '@/lib/resellerAuth'
 import { getClientIp } from '@/lib/rateLimit'
+import { sendDiscord } from '@/lib/discord'
 
 export async function POST(req: NextRequest) {
   if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
         where: { userId, type: 'LOGIN_2FA', used: false },
         data: { used: true }
       })
-      return NextResponse.json({ error: 'Too many wrong attempts. Try again in 15 minutes.' }, { status: 429 })
+      return NextResponse.json({ error: 'Too many wrong attempts.' }, { status: 429 })
     }
 
     const otp = await prisma.otpCode.findFirst({
@@ -39,7 +40,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 })
     }
 
-    // Mark OTP used
     await prisma.otpCode.update({
       where: { id: otp.id },
       data: { used: true }
@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
 
     clearOtpAttempts(userId, 'LOGIN_2FA')
 
-    // Create session
     const ip = getClientIp(req)
     const userAgent = req.headers.get('user-agent') || 'Unknown'
     const token = await createResellerSession(userId, ip, userAgent)
@@ -57,8 +56,15 @@ export async function POST(req: NextRequest) {
     response.cookies.set(cookie)
     return response
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('[verify-2fa]', error)
+    await sendDiscord('error', {
+      title: '2FA Verification Error',
+      color: 0xef4444,
+      fields: [
+        { name: 'Error', value: error.message ?? 'Unknown error', inline: false },
+      ],
+    }, 'ArtisanStore Security')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

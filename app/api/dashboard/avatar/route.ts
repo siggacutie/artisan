@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResellerSession } from '@/lib/resellerAuth'
 import { createClient } from '@supabase/supabase-js'
+import { rateLimit } from '@/lib/rateLimit'
+
+import { validateOrigin } from '@/lib/validateOrigin'
 
 export async function POST(req: NextRequest) {
+  if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
@@ -15,6 +20,12 @@ export async function POST(req: NextRequest) {
 
   const session = await getResellerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Rate limiting: max 5 uploads per user per hour
+  const rl = rateLimit(`avatar_upload_${session.id}`, 5, 60 * 60 * 1000)
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'too_many_uploads' }, { status: 429 })
+  }
 
   try {
     const formData = await req.formData()
@@ -56,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error('[avatar upload]', uploadError)
-      return NextResponse.json({ error: 'Upload failed: ' + uploadError.message }, { status: 500 })
+      return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
     }
 
     const { data: urlData } = supabase.storage

@@ -1,8 +1,15 @@
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { sendDiscord } from './discord'
 
 const SESSION_COOKIE = 'reseller_session'
 const SESSION_EXPIRY_DAYS = 30
+
+function normalizeUserAgent(ua: string): string {
+  // Extract just the browser engine signature, ignore version numbers
+  const match = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)
+  return match ? match[1] : ua.slice(0, 50)
+}
 
 export async function getResellerSession() {
   try {
@@ -18,20 +25,20 @@ export async function getResellerSession() {
             id: true,
             username: true,
             email: true,
-            name: true,
             role: true,
+            walletBalance: true,
+            membershipExpiresAt: true,
             isReseller: true,
             isBanned: true,
             isFrozen: true,
-            walletBalance: true,
-            membershipExpiresAt: true,
-            membershipMonths: true,
             avatarUrl: true,
-            createdAt: true,
+            name: true,
+            emailDisabled: true,
             autoRenew: true,
             autoRenewMonths: true,
-          },
-        },
+            emailVerified: true,
+          }
+        }
       },
     })
 
@@ -45,7 +52,7 @@ export async function getResellerSession() {
       return null
     }
 
-    // Layer 5: Session expiry enforcement
+    // Session expiry enforcement
     if (session.expiresAt && session.expiresAt < new Date()) {
       await prisma.resellerSession.deleteMany({ where: { token } })
       return null
@@ -54,28 +61,26 @@ export async function getResellerSession() {
     // Layer 1: Device fingerprint binding (User-Agent)
     const headersList = await import('next/headers')
     const requestHeaders = await headersList.headers()
-    const currentUserAgent = requestHeaders.get('user-agent')
-    if (session.userAgent && currentUserAgent && session.userAgent !== currentUserAgent) {
+    const currentUserAgent = requestHeaders.get('user-agent') ?? ''
+    
+    const storedUA = normalizeUserAgent(session.userAgent ?? '')
+    const currentUA = normalizeUserAgent(currentUserAgent)
+
+    if (storedUA && currentUA && storedUA !== currentUA) {
+      // Different browser/device — genuine security concern
       await prisma.resellerSession.deleteMany({ where: { token } })
       return null
     }
 
-    // Layer 2: Rolling session token with IP change check
+    // Layer 2: Update lastSeen and IP (IP change alone does NOT invalidate)
     const currentIp = requestHeaders.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
-    if (session.lastSeen && (new Date().getTime() - new Date(session.lastSeen).getTime()) > 30 * 60 * 1000) {
-      if (session.ip && currentIp && session.ip !== currentIp) {
-        await prisma.resellerSession.deleteMany({ where: { token } })
-        return null
-      }
-    }
-
-    // Update lastSeen
+    
     await prisma.resellerSession.update({
       where: { id: session.id },
       data: { lastSeen: new Date(), ip: currentIp }
     })
 
-    // Layer 6: Membership expiry enforcement
+    // Membership expiry enforcement
     const isExpired = session.user.membershipExpiresAt && new Date(session.user.membershipExpiresAt) < new Date()
 
     return { ...session.user, membershipExpired: isExpired }
@@ -90,35 +95,35 @@ export async function createResellerSession(
   userAgent?: string
 ): Promise<string> {
   // Layer 3: Concurrent session detection
-  const existingSession = await prisma.resellerSession.findUnique({ where: { userId }, include: { user: true } })
-  if (existingSession) {
-    // Log suspicious activity
-    await prisma.suspiciousActivity.create({
-      data: {
-        userId,
-        reason: 'concurrent_login_attempt',
-        metadata: {
-          oldIp: existingSession.ip,
-          newIp: ip,
-          userAgent
-        }
-      }
-    })
+  const existingSession = await prisma.resellerSession.findUnique({ 
+    where: { userId }, 
+    include: { user: true } 
+  })
 
-    // Discord Webhook
-    if (process.env.DISCORD_WEBHOOK) {
-      try {
-        await fetch(process.env.DISCORD_WEBHOOK, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: "ArtisanStore Security",
-            content: `⚠️ Account **${existingSession.user.username}** logged in from a new device. Old IP: \`${existingSession.ip}\` → New IP: \`${ip}\`. Old session terminated.`
-          })
-        })
-      } catch (e) {
-        console.error('Discord webhook failed', e)
-      }
+  if (existingSession) {
+    const oldIp = existingSession.ip
+    const newIp = ip
+    
+    // Only log and notify if IP actually changed
+    if (oldIp && newIp && oldIp !== newIp) {
+      await prisma.suspiciousActivity.create({
+        data: {
+          userId,
+          reason: 'concurrent_login_attempt',
+          metadata: { oldIp, newIp, userAgent },
+        }
+      })
+
+      // Send to signup_alerts_webhook
+      await sendDiscord('signup', {
+        title: 'Account logged in from new IP',
+        color: 0xf59e0b,
+        fields: [
+          { name: 'Username', value: existingSession.user.username ?? 'unknown', inline: true },
+          { name: 'Old IP', value: oldIp, inline: true },
+          { name: 'New IP', value: newIp, inline: true },
+        ],
+      }, 'ArtisanStore Security')
     }
     
     await prisma.resellerSession.deleteMany({ where: { userId } })
@@ -142,7 +147,6 @@ export async function deleteResellerSession(token: string) {
 }
 
 export function setSessionCookie(token: string) {
-  // This is called from API routes using NextResponse
   return {
     name: SESSION_COOKIE,
     value: token,

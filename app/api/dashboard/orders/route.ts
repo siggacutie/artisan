@@ -8,6 +8,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (user.membershipExpired) {
+    return NextResponse.json({ error: 'membership_expired' }, { status: 403 })
+  }
+
   try {
     const orders = await prisma.order.findMany({
       where: { userId: user.id },

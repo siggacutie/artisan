@@ -70,3 +70,9 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/prompt3_implementation_fixes/](./tracks/prompt3_implementation_fixes/)*
 - [ ] **Track: Fix Database Schema for Auto-Renew**
   *Link: [./tracks/fix_db_schema_auto_renew/](./tracks/fix_db_schema_auto_renew/)*
+- [x] **Track: Security Audit and Hardening (Full @Prompt3.md)**
+  *Link: [./tracks/security_audit_hardening_20260425/](./tracks/security_audit_hardening_20260425/)*
+- [x] **Track: Final Compliance Fixes for @Prompt3.md**
+  *Link: [./tracks/prompt3_compliance_final_fix/](./tracks/prompt3_compliance_final_fix/)*
+- [x] **Track: Fix TypeScript Error in Games Page**
+  *Link: [./tracks/fix_games_page_ts_error_20260425/](./tracks/fix_games_page_ts_error_20260425/)*

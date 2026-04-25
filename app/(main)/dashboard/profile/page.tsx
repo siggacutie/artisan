@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Lock,
   Loader2,
   Camera,
   CheckCircle2,
@@ -10,13 +9,20 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const fetchUser = async () => {
     try {
@@ -72,23 +78,6 @@ export default function ProfilePage() {
     }
   }
 
-  useEffect(() => {
-    const updateMonths = async () => {
-      if (user && autoRenew && autoRenewMonths !== user.autoRenewMonths) {
-        try {
-          await fetch('/api/dashboard/profile', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ autoRenewMonths }),
-          })
-        } catch (err) {
-          console.error('Failed to update auto-renew months:', err)
-        }
-      }
-    }
-    updateMonths()
-  }, [autoRenewMonths, autoRenew, user])
-
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -129,25 +118,30 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '800px' }}>
       <div style={{
         background: '#0d1120',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '24px',
-        padding: '32px',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+        padding: isMobile ? '24px' : '32px',
+        boxShadow: '0 4px 32px rgba(0,0,0,0.5)',
         position: 'relative',
         overflow: 'hidden',
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-          background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)',
-          zIndex: 20
+          background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)'
         }} />
         
-        <h3 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '32px' }}>Profile Settings</h3>
+        <h3 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '16px' : '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '32px' }}>Profile</h3>
         
-        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8 mb-10">
+        <div style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'center' : 'flex-start',
+          gap: isMobile ? '24px' : '32px',
+          marginBottom: '40px'
+        }}>
           <div style={{ position: 'relative', width: '100px', height: '100px', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
             <div style={{
               width: '100px',
@@ -159,7 +153,6 @@ export default function ProfilePage() {
               justifyContent: 'center',
               overflow: 'hidden',
               border: '2px solid rgba(255,215,0,0.3)',
-              boxShadow: '0 0 20px rgba(255,215,0,0.1)'
             }}>
               {avatarUrl ? (
                 <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -182,7 +175,6 @@ export default function ProfilePage() {
               alignItems: 'center',
               justifyContent: 'center',
               border: '3px solid #0d1120',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
             }}>
               <Camera size={14} color="#050810" />
             </div>
@@ -231,13 +223,13 @@ export default function ProfilePage() {
             }}
           />
 
-          <div className="text-center md:text-left">
+          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
             <h4 style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '20px', fontWeight: '700', margin: 0 }}>{name || user?.username || 'Player'}</h4>
             <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', marginTop: '4px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Member since {memberSince}</p>
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="space-y-3">
             <label style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '4px' }}>Username</label>
             <div style={{ 
@@ -252,7 +244,7 @@ export default function ProfilePage() {
               alignItems: 'center' 
             }}>
               <span style={{ fontWeight: '600' }}>{user?.username}</span>
-              <span style={{ color: '#475569', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>(Contact admin to change)</span>
+              {!isMobile && <span style={{ color: '#475569', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>(Contact admin to change)</span>}
             </div>
           </div>
 
@@ -273,10 +265,8 @@ export default function ProfilePage() {
                 fontSize: '15px',
                 fontWeight: '600',
                 outline: 'none',
-                transition: 'border-color 0.2s ease',
+                boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = 'rgba(255,215,0,0.3)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255,215,0,0.1)'}
             />
           </div>
           
@@ -294,16 +284,10 @@ export default function ProfilePage() {
               textTransform: 'uppercase',
               letterSpacing: '1px',
               borderRadius: '16px',
-              transition: 'all 0.15s ease',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(255,215,0,0.2)',
               marginTop: '8px'
             }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
           >
             {isUpdating ? <Loader2 className="animate-spin" /> : "Save Changes"}
           </Button>
@@ -314,18 +298,16 @@ export default function ProfilePage() {
       <div style={{
         background: '#0d1120',
         border: '1px solid rgba(255,215,0,0.1)',
-        borderRadius: '12px',
-        padding: '24px',
-        marginTop: '16px',
+        borderRadius: '24px',
+        padding: isMobile ? '24px' : '32px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: '20px' }}>
           <div>
-            <div style={{ color: '#fff', fontFamily: 'Orbitron', fontSize: '14px', marginBottom: '4px' }}>
+            <div style={{ color: '#fff', fontFamily: 'Orbitron', fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase' }}>
               Auto-Renew Membership
             </div>
             <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '13px' }}>
-              Automatically renew using your coin balance when membership expires.
-              Requires sufficient coins at time of renewal.
+              Automatically renew using coin balance.
             </div>
           </div>
           {/* Toggle */}
@@ -335,7 +317,7 @@ export default function ProfilePage() {
               width: '44px', height: '24px', borderRadius: '12px',
               background: autoRenew ? '#22c55e' : '#334155',
               position: 'relative', cursor: 'pointer',
-              transition: 'background 0.2s ease', flexShrink: 0, marginLeft: '16px',
+              transition: 'background 0.2s ease', flexShrink: 0,
             }}
           >
             <div style={{
@@ -348,31 +330,31 @@ export default function ProfilePage() {
         </div>
         {autoRenew && (
           <div style={{
-            marginTop: '12px',
+            marginTop: '20px',
             background: 'rgba(34,197,94,0.06)',
             border: '1px solid rgba(34,197,94,0.15)',
-            borderRadius: '8px',
-            padding: '10px 14px',
+            borderRadius: '12px',
+            padding: '16px',
           }}>
-            <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px' }}>
-              Select renewal plan for auto-renew:
+            <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', marginBottom: '12px' }}>
+              Select renewal duration:
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[1, 3, 6, 12].map(m => (
                 <div
                   key={m}
                   onClick={() => setAutoRenewMonths(m)}
                   style={{
-                    padding: '6px 14px',
-                    borderRadius: '6px',
-                    border: `1px solid ${autoRenewMonths === m ? '#ffd700' : 'rgba(255,215,0,0.1)'}`,
-                    background: autoRenewMonths === m ? 'rgba(255,215,0,0.1)' : 'transparent',
+                    padding: '8px 20px',
+                    borderRadius: '8px',
+                    border: `1px solid ${autoRenewMonths === m ? '#ffd700' : 'rgba(255,255,255,0.05)'}`,
+                    background: autoRenewMonths === m ? 'rgba(255,215,0,0.1)' : '#050810',
                     color: autoRenewMonths === m ? '#ffd700' : '#64748b',
                     fontFamily: 'Inter', fontSize: '13px', cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {m}mo
+                  {m} Month{m > 1 ? 's' : ''}
                 </div>
               ))}
             </div>
@@ -389,22 +371,24 @@ export default function ProfilePage() {
             style={{
               position: 'fixed',
               bottom: '32px',
-              right: '32px',
+              left: '50%',
+              transform: 'translateX(-50%)',
               backgroundColor: toast.type === 'success' ? '#22c55e' : '#ef4444',
               color: 'white',
               fontFamily: 'Inter',
               fontSize: '13px',
               fontWeight: '700',
-              padding: '16px 24px',
-              borderRadius: '12px',
+              padding: '12px 24px',
+              borderRadius: '99px',
               zIndex: 1000,
-              boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '12px',
+              whiteSpace: 'nowrap'
             }}
           >
-            {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
             {toast.message}
           </motion.div>
         )}

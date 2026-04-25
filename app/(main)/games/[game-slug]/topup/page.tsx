@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation'
 import NextLink from 'next/link'
 import Image from 'next/image'
 import { 
-  ChevronRight, Shield, CheckCircle2, AlertCircle, Loader2, Info
+  ChevronRight, Shield, CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
-import Navbar from '@/components/layout/Navbar'
 import { toast } from 'sonner'
-import { motion, AnimatePresence, Variants } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 
 const pageVariants: Variants = {
   initial: { opacity: 0, y: 12 },
@@ -43,6 +41,14 @@ export default function TopUpPage() {
   const [purchasing, setPurchasing] = useState(false)
   const [packages, setPackages] = useState<any[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     fetch('/api/reseller/auth/me')
@@ -59,7 +65,6 @@ export default function TopUpPage() {
   }, [router])
 
   useEffect(() => {
-    // Fetch packages
     fetch('/api/packages', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
@@ -69,7 +74,6 @@ export default function TopUpPage() {
       .catch(() => toast.error("Failed to load packages"))
       .finally(() => setLoadingPackages(false))
 
-    // Update balance when user changes
     if (user) {
       setBalance(user.walletBalance ?? 0)
     }
@@ -142,21 +146,31 @@ export default function TopUpPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#050810] text-white font-inter">
-      <Navbar />
-      
+    <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: isMobile ? '16px' : '32px 24px',
+      minHeight: '100vh',
+      backgroundColor: '#050810',
+      boxSizing: 'border-box'
+    }}>
       <motion.main 
         variants={pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24"
+        className="pb-24"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '32px' : '48px',
+          alignItems: 'flex-start'
+        }}>
           
           {/* Left Column: Form and Selection */}
-          <div className="lg:col-span-7 space-y-10">
+          <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', gap: '40px' }}>
             
             {/* Header */}
             <div className="space-y-4">
@@ -167,7 +181,7 @@ export default function TopUpPage() {
                 <ChevronRight size={10} />
                 <span className="text-white">Mobile Legends</span>
               </nav>
-              <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '32px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic' }}>Mobile Legends</h1>
+              <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '24px' : '32px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic' }}>Mobile Legends</h1>
             </div>
 
             {/* Step 1: Player Details */}
@@ -175,7 +189,7 @@ export default function TopUpPage() {
               background: '#0d1120',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '24px',
-              padding: '32px',
+              padding: isMobile ? '24px' : '32px',
               boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
               position: 'relative',
               overflow: 'hidden',
@@ -184,9 +198,9 @@ export default function TopUpPage() {
                 position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
                 background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)'
               }} />
-              <div className="flex items-center justify-between mb-8">
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '32px', gap: '16px' }}>
                 <div className="space-y-1">
-                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>1. Player Details</h2>
+                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '16px' : '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>1. Player Details</h2>
                   <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Enter your User ID and Zone ID</p>
                 </div>
                 {verifiedUsername && (
@@ -197,8 +211,8 @@ export default function TopUpPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '4px' }}>User ID</label>
                   <Input 
                     placeholder="e.g. 12345678" 
@@ -207,7 +221,7 @@ export default function TopUpPage() {
                     className="h-14 bg-[#050810] border-white/5 rounded-2xl text-lg font-bold focus:border-[#ffd700]/30 transition-all"
                   />
                 </div>
-                <div className="space-y-2">
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginLeft: '4px' }}>Zone ID</label>
                   <Input 
                     placeholder="e.g. 1234" 
@@ -237,8 +251,6 @@ export default function TopUpPage() {
                   transition: 'all 0.15s ease',
                   cursor: 'pointer'
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
               >
                 {verifying ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
                 {verifying ? 'Verifying...' : 'Verify Player'}
@@ -253,23 +265,24 @@ export default function TopUpPage() {
             </div>
 
             {/* Step 2: Package Selection */}
-            <div className="space-y-12">
-              <div className="flex items-center justify-between">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '16px' }}>
                 <div className="space-y-1">
-                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>2. Select Package</h2>
-                  <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Choose the amount of diamonds you want to top up</p>
+                  <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: isMobile ? '16px' : '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase' }}>2. Select Package</h2>
+                  <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Choose the diamonds amount</p>
                 </div>
                 <div style={{
-                background: 'rgba(255,215,0,0.1)',
-                border: '1px solid rgba(255,215,0,0.2)',
-                padding: '8px 16px',
-                borderRadius: '99px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                  background: 'rgba(255,215,0,0.1)',
+                  border: '1px solid rgba(255,215,0,0.2)',
+                  padding: '8px 16px',
+                  borderRadius: '99px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}>
-                 <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Balance: {Math.floor(balance)} coins</span>
-                </div>              </div>
+                  <span style={{ color: '#ffd700', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Balance: {Math.floor(balance)} coins</span>
+                </div>
+              </div>
 
               {sections.map(section => (
                 <div key={section.id} className="space-y-6">
@@ -278,7 +291,11 @@ export default function TopUpPage() {
                     <h3 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '14px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase' }}>{section.title}</h3>
                   </div>
                   <motion.div 
-                    className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                      gap: '16px'
+                    }}
                     variants={containerVariants}
                     initial="initial"
                     animate="animate"
@@ -303,12 +320,6 @@ export default function TopUpPage() {
                             flexDirection: 'column',
                             justifyContent: 'space-between',
                             height: '112px'
-                          }}
-                          onMouseEnter={e => {
-                            if (selectedPackage?.id !== pkg.id) e.currentTarget.style.borderColor = 'rgba(255,215,0,0.25)';
-                          }}
-                          onMouseLeave={e => {
-                            if (selectedPackage?.id !== pkg.id) e.currentTarget.style.borderColor = 'rgba(255,215,0,0.08)';
                           }}
                         >
                           <span style={{ 
@@ -335,13 +346,13 @@ export default function TopUpPage() {
           </div>
 
           {/* Right Column: Checkout */}
-          <div className="lg:col-span-5 relative">
-            <div className="sticky top-32 space-y-6">
+          <div style={{ flex: isMobile ? 'none' : '0 0 400px', width: '100%' }}>
+            <div style={{ position: isMobile ? 'static' : 'sticky', top: '100px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{
                 background: '#0d1120',
                 border: '1px solid rgba(255,255,255,0.06)',
                 borderRadius: '24px',
-                padding: '32px',
+                padding: isMobile ? '24px' : '32px',
                 boxShadow: '0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
                 position: 'relative',
                 overflow: 'hidden',
@@ -350,16 +361,15 @@ export default function TopUpPage() {
                   position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
                   background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)'
                 }} />
-                <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '24px' }}>Order Summary</h2>
+                <h2 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '600', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '24px' }}>Summary</h2>
 
-                <div className="space-y-8">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                   {/* Selected Game */}
                   <div style={{
                     background: 'linear-gradient(135deg, #0d1120 0%, #0a0f1e 100%)',
                     border: '1px solid rgba(255,215,0,0.08)',
                     borderRadius: '12px',
                     padding: '16px',
-                    boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px'
@@ -369,7 +379,6 @@ export default function TopUpPage() {
                       background: 'linear-gradient(135deg, rgba(0,195,255,0.15), rgba(0,195,255,0.05))',
                       border: '1px solid rgba(0,195,255,0.25)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(0,195,255,0.1)',
                       overflow: 'hidden'
                     }}>
                        <Image src="/assets/games/mlbb/logo.png" alt="MLBB" width={44} height={44} />
@@ -385,7 +394,7 @@ export default function TopUpPage() {
                     <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Delivering To</p>
                     {verifiedUsername ? (
                       <div className="flex flex-col">
-                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px', fontStyle: 'italic' }}>{verifiedUsername}</span>
+                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: isMobile ? '20px' : '24px', fontWeight: '700', letterSpacing: '-0.5px', fontStyle: 'italic' }}>{verifiedUsername}</span>
                         <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '12px', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>ID: {userId} ({zoneId})</span>
                       </div>
                     ) : (
@@ -394,7 +403,7 @@ export default function TopUpPage() {
                   </div>
 
                   {/* Price Breakdown */}
-                  <div className="space-y-6 pt-6 border-t border-white/5">
+                  <div style={{ paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     <div className="flex justify-between items-center">
                       <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Selected Package</span>
                       <span style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600' }}>{selectedPackage?.name || '—'}</span>
@@ -402,11 +411,7 @@ export default function TopUpPage() {
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
                         <span style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '13px' }}>Total Price</span>
-                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '28px', fontWeight: '700', letterSpacing: '-0.5px' }}>{Math.ceil((selectedPackage?.resellerPrice || 0))} coins</span>
-                      </div>
-                      <div className="text-right flex flex-col items-end">
-                         <span style={{ color: '#22c55e', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Method</span>
-                         <span style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase' }}>Artisan Wallet</span>
+                        <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: isMobile ? '24px' : '28px', fontWeight: '700', letterSpacing: '-0.5px' }}>{Math.ceil((selectedPackage?.resellerPrice || 0))} coins</span>
                       </div>
                     </div>
                   </div>
@@ -424,24 +429,9 @@ export default function TopUpPage() {
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       letterSpacing: '2px',
-                      transition: 'all 0.15s ease',
-                      cursor: 'pointer',
-                      border: 'none',
                       backgroundColor: (!verifiedUsername || !selectedPackage) ? '#1e2535' : (balance < selectedPackage.resellerPrice ? '#ef4444' : '#ffd700'),
                       color: (balance < selectedPackage?.resellerPrice) ? '#ffffff' : '#050810',
-                      boxShadow: (!verifiedUsername || !selectedPackage) ? 'none' : '0 8px 32px rgba(0,0,0,0.3)',
-                    }}
-                    onMouseEnter={e => {
-                      if (verifiedUsername && selectedPackage && balance >= selectedPackage.resellerPrice) {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 40px rgba(255,215,0,0.2)';
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (verifiedUsername && selectedPackage && balance >= selectedPackage.resellerPrice) {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
-                      }
+                      border: 'none',
                     }}
                   >
                     {purchasing 
@@ -449,14 +439,14 @@ export default function TopUpPage() {
                       : balance < (selectedPackage?.resellerPrice || 0) 
                         ? 'Insufficient coins' 
                         : selectedPackage 
-                          ? `Buy Now — ${Math.ceil(selectedPackage.resellerPrice)}` 
+                          ? `Buy Now` 
                           : 'Buy Now'
                     }
                   </Button>
 
                   {!verifiedUsername && (
                     <p style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', textAlign: 'center', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px' }}>
-                      Verify Player details before purchasing
+                      Verify details first
                     </p>
                   )}
                 </div>
@@ -464,25 +454,13 @@ export default function TopUpPage() {
 
               {/* Security Badge */}
               <div className="flex items-center justify-center gap-3">
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: '8px',
-                  background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))',
-                  border: '1px solid rgba(34,197,94,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Shield size={16} color="#22c55e" />
-                </div>
-                <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>Secure Wallet Checkout</span>
+                <Shield size={16} color="#22c55e" />
+                <span style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px' }}>Secure Checkout</span>
               </div>
             </div>
           </div>
         </div>
       </motion.main>
-      <style jsx>{`
-        .bg-gold { background-color: #ffd700; }
-        .text-gold { color: #ffd700; }
-      `}</style>
     </div>
   )
 }
-

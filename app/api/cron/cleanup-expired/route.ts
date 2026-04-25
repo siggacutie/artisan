@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendDiscord } from '@/lib/discord'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,6 @@ export async function GET(req: NextRequest) {
         lt: new Date(),
       },
     },
-    // We need more fields for auto-renewal check
   })
 
   const results = []
@@ -36,8 +36,7 @@ export async function GET(req: NextRequest) {
       const cost = MEMBERSHIP_PRICES[user.autoRenewMonths]
       
       if (cost && user.walletBalance >= cost) {
-        // Sufficient balance — auto renew
-        const base = new Date() // expiry was in the past, so base on now
+        const base = new Date()
         const newExpiry = new Date(base)
         newExpiry.setMonth(newExpiry.getMonth() + user.autoRenewMonths)
         
@@ -78,17 +77,26 @@ export async function GET(req: NextRequest) {
             }),
           ])
           
+          await sendDiscord('signup', {
+            title: 'Membership Auto-Renewed',
+            color: 0x22c55e,
+            fields: [
+              { name: 'User', value: user.username || user.id, inline: true },
+              { name: 'Plan', value: `${user.autoRenewMonths} Months`, inline: true },
+              { name: 'Cost', value: `${cost} coins`, inline: true },
+            ],
+          }, 'ArtisanStore CRON')
+
           results.push({ userId: user.id, username: user.username, action: 'auto_renewed' })
-          continue // skip cleanup for this user
+          continue
         } catch (err) {
           console.error(`[cron] Auto-renew failed for ${user.username}:`, err)
         }
       }
     }
 
-    // 2. Check 3-day grace period before cleanup
+    // 2. Check 3-day grace period
     if (user.membershipExpiresAt && new Date(user.membershipExpiresAt) > threeDaysAgo) {
-      // Still in grace period
       results.push({ userId: user.id, username: user.username, action: 'grace_period' })
       continue
     }
@@ -103,11 +111,20 @@ export async function GET(req: NextRequest) {
           isFrozen: true,
         },
       }),
-      // Assuming we want to clear sensitive logs but keep order history
       prisma.resellerSession.deleteMany({
         where: { userId: user.id },
       }),
     ])
+
+    await sendDiscord('signup', {
+      title: 'Membership Revoked (Expired)',
+      color: 0xef4444,
+      fields: [
+        { name: 'User', value: user.username || user.id, inline: true },
+        { name: 'Action', value: 'Access revoked, coins cleared', inline: true },
+      ],
+    }, 'ArtisanStore CRON')
+
     results.push({ userId: user.id, username: user.username, action: 'membership_revoked' })
   }
 

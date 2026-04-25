@@ -1,44 +1,33 @@
-# Specification — Prompt3 Implementation (Updated)
+# Specification — Prompt3 Implementation (Full)
 
-Update the application according to the instructions in `prompt3.md`.
+Implement the three major bug fixes and Discord webhook routing as defined in `prompt3.md`.
 
 ## Goals
-1. Fix mobile alignment and spacing on the Games page header.
-2. Fix wallet balance loading, horizontal overflow, and "ADD FUNDS" button styling on the Dashboard.
-3. Update Dashboard API to return necessary summary data.
-4. Provide instructions for setting up the cleanup CRON job.
+1. **Full mobile responsiveness overhaul**: Fix navbar, dashboard, and all pages for mobile (375px-768px).
+2. **Session stability fix**: Prevent false session termination due to IP changes by switching to User-Agent-only validation and normalizing User-Agents.
+3. **Discord webhook routing**: Map all notifications to their correct webhooks (GENERAL, ERRORS, SIGNUP, ORDERS, PAYMENTS) using a centralized helper.
 
 ## Technical Requirements
-- Next.js 14+ App Router.
+- Next.js 16.2.2 App Router.
 - Tailwind CSS 4.0.
+- Custom Auth (lib/resellerAuth.ts).
+- Mobile-first approach (375px+).
 - No `<form>` tags.
-- No `framer-motion` (unless existing and necessary, but avoid adding).
-- Fixed Color Palette:
-  - Background: #050810
-  - Card bg: #0d1120
-  - Gold: #ffd700
-  - Blue: #00c3ff
-  - Success: #22c55e
-  - Muted text: #64748b
+- No emojis in UI (Lucide icons only).
+- bg #050810, card #0d1120, gold #ffd700.
 
-## Changes Needed
+## Detailed Changes
 
-### FIX 1: app/(main)/games/page.tsx
-- Stats row: `flex-wrap`, `gap-3`, `items-center`.
-- Badges ("Instant Delivery", "Secure Payments"): `whitespace-nowrap`.
-- "1 GAME AVAILABLE": own block on left.
-- Header section horizontal padding: `px-4` on mobile.
-- Root wrapper: `overflow-hidden`.
+### BUG 1 — Mobile Responsiveness
+- **Navbar**: Hide center links/reseller text on mobile. Show hamburger menu opening a slide-in drawer.
+- **MobileBottomNav**: Create `components/layout/MobileBottomNav.tsx` visible only on mobile.
+- **Dashboard**: Sidebar becomes horizontal scrollable tab bar on mobile.
+- **General Layout**: Responsive padding, stacking cards, flex-direction column on mobile.
 
-### FIX 2: app/(main)/dashboard/wallet/page.tsx + app/api/dashboard/summary/route.ts
-- Fetch `/api/dashboard/summary`: `credentials: 'include'`, `cache: 'no-store'`.
-- Loading state: show skeletons or "Loading...".
-- Error state: show "Could not load wallet".
-- API Route: return `walletBalance`, `membershipExpiresAt`, `totalOrders`, `totalSpent`.
-- Balance/Spent display: `Math.floor(x / 1.5) + " coins"`.
-- Horizontal overflow fix: `max-w-full overflow-hidden` on root div and cards.
-- ADD FUNDS button: solid `#ffd700` background, dark text, no gradient/glow.
-- Cards: `w-full max-w-full box-sizing border-box`.
+### BUG 2 — Session Stability
+- **lib/resellerAuth.ts**: Remove IP check in `getResellerSession`. Implement `normalizeUserAgent`. Use only UA for session invalidation.
+- **app/api/reseller/auth/login/route.ts**: Only notify Discord if IP actually changed.
 
-### FIX 3: CRON Instructions
-- Output a clear markdown instruction block for manual setup on Ubuntu VPS.
+### BUG 3 — Discord Webhook Routing
+- **lib/discord.ts**: Create centralized `sendDiscord` helper.
+- **API Routes**: Update all routes to use the helper with correct webhook mapping.

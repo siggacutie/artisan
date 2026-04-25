@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getResellerSession } from '@/lib/resellerAuth'
 import { validateOrigin } from '@/lib/validateOrigin'
 import { prisma } from '@/lib/prisma'
+import { sendDiscord } from '@/lib/discord'
 
 // UTR validation: UPI reference numbers are 12 digits
 // IMPS UTR is 12 digits. NEFT is 22 alphanumeric.
@@ -49,16 +50,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { paymentLinkId, utrNumber } = body
 
-  // Validate UTR format — must match regex
-  if (!utrNumber || !UTR_REGEX.test(utrNumber.trim())) {
+  if (!utrNumber) {
+    return NextResponse.json({ error: 'UTR number required' }, { status: 400 })
+  }
+
+  // Strip non-alphanumeric characters
+  const cleanUtr = utrNumber.replace(/[^A-Z0-9]/gi, '').toUpperCase()
+
+  // Validate UTR format
+  if (!UTR_REGEX.test(cleanUtr)) {
     return NextResponse.json({
-      error: 'Invalid UTR format. UTR should be 12-22 alphanumeric characters. Make sure you are entering the UTR number and NOT the transaction ID.'
+      error: 'Invalid UTR format. UTR should be 12-22 alphanumeric characters.'
     }, { status: 400 })
   }
 
-  const cleanUtr = utrNumber.trim().toUpperCase()
-
-  // Check UTR not already used (globally across all payments)
+  // Check UTR not already used
   const existingUtr = await prisma.paymentLink.findFirst({
     where: { utrNumber: cleanUtr },
   })
@@ -112,27 +118,17 @@ export async function POST(req: NextRequest) {
   })
 
   // Send Discord notification for manual review
-  if (process.env.DISCORD_WEBHOOK) {
-    fetch(process.env.DISCORD_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: 'ArtisanStore Payments',
-        embeds: [{
-          title: 'UTR Submitted — Pending Verification',
-          color: 0xf59e0b,
-          fields: [
-            { name: 'User', value: userId, inline: true },
-            { name: 'Amount', value: `Rs ${paymentLink.amount}`, inline: true },
-            { name: 'UTR', value: cleanUtr, inline: false },
-            { name: 'UPI Ref', value: paymentLink.upiRef, inline: true },
-            { name: 'Payment ID', value: paymentLink.id, inline: true },
-          ],
-          timestamp: new Date().toISOString(),
-        }]
-      })
-    }).catch(() => {})
-  }
+  await sendDiscord('payment', {
+    title: 'UTR Submitted — Pending Verification',
+    color: 0xf59e0b,
+    fields: [
+      { name: 'User', value: session.username || userId, inline: true },
+      { name: 'Amount', value: `Rs ${paymentLink.amount}`, inline: true },
+      { name: 'UTR', value: cleanUtr, inline: false },
+      { name: 'UPI Ref', value: paymentLink.upiRef, inline: true },
+      { name: 'Payment ID', value: paymentLink.id, inline: true },
+    ],
+  }, 'ArtisanStore Payments')
 
   return NextResponse.json({
     success: true,

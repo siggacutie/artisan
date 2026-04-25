@@ -7,15 +7,15 @@ import crypto from 'crypto'
 import { createResellerSession, setSessionCookie } from '@/lib/resellerAuth'
 import { sendOtpEmail } from '@/lib/email'
 import { rateLimit, getClientIp } from '@/lib/rateLimit'
+import { sendDiscord } from '@/lib/discord'
 
 export async function POST(req: NextRequest) {
   if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const ip = getClientIp(req)
 
-  // Task 5 Layer 4: Rate limiting on login endpoint
-  // 1. Max 5 failed login attempts per IP per 15 minutes
-  const ipLimit = rateLimit(`login_fail_ip_${ip}`, 5, 15 * 60 * 1000)
+  // Rate limiting check on login endpoint (check only, don't increment yet)
+  const ipLimit = rateLimit(`login_fail_ip_${ip}`, 5, 15 * 60 * 1000, false)
   if (!ipLimit.allowed) {
     return NextResponse.json({ error: 'too_many_attempts', retryAfter: 900 }, { status: 429 })
   }
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'invalid_input' }, { status: 400 })
     }
 
-    // 2. Max 10 failed login attempts per username per 15 minutes
-    const userLimit = rateLimit(`login_fail_user_${username}`, 10, 15 * 60 * 1000)
+    // Rate limiting check per username (check only)
+    const userLimit = rateLimit(`login_fail_user_${username}`, 10, 15 * 60 * 1000, false)
     if (!userLimit.allowed) {
       return NextResponse.json({ error: 'too_many_attempts', retryAfter: 900 }, { status: 429 })
     }
@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { username: username.trim() } })
 
     if (!user || !user.passwordHash || !user.isReseller) {
+      // Increment failure count
+      rateLimit(`login_fail_ip_${ip}`, 5, 15 * 60 * 1000, true)
+      if (username) rateLimit(`login_fail_user_${username}`, 10, 15 * 60 * 1000, true)
+      
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
@@ -49,42 +53,35 @@ export async function POST(req: NextRequest) {
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
+      // Increment failure count
+      rateLimit(`login_fail_ip_${ip}`, 5, 15 * 60 * 1000, true)
+      rateLimit(`login_fail_user_${username}`, 10, 15 * 60 * 1000, true)
+      
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    // Task 6: Weird login detection (New IP)
+    // Weird login detection (New IP)
     const previousLogin = await prisma.loginHistory.findFirst({
       where: { userId: user.id, ip: { not: ip } }
     })
     
-    // If user has login history but this IP is new, it's a "weird login"
     const isNewIp = previousLogin && !(await prisma.loginHistory.findFirst({ where: { userId: user.id, ip } }))
 
-    if (isNewIp && process.env.SIGNUP_ALERTS_WEBHOOK) {
-      fetch(process.env.SIGNUP_ALERTS_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'ArtisanStore Security',
-          embeds: [{
-            title: '⚠️ Suspicious Login Detected',
-            description: `A user logged in from a new IP address.`,
-            color: 0xff4444,
-            fields: [
-              { name: 'Username', value: user.username || 'Unknown', inline: true },
-              { name: 'Email', value: user.email || 'None', inline: true },
-              { name: 'New IP', value: ip, inline: true },
-              { name: 'User Agent', value: req.headers.get('user-agent') || 'Unknown', inline: false },
-            ],
-            timestamp: new Date().toISOString(),
-          }]
-        })
-      }).catch(() => {});
+    if (isNewIp) {
+      await sendDiscord('signup', {
+        title: '⚠️ Suspicious Login Detected',
+        color: 0xff4444,
+        fields: [
+          { name: 'Username', value: user.username || 'Unknown', inline: true },
+          { name: 'Email', value: user.email || 'None', inline: true },
+          { name: 'New IP', value: ip, inline: true },
+          { name: 'User Agent', value: req.headers.get('user-agent') || 'Unknown', inline: false },
+        ],
+      }, 'ArtisanStore Security')
     }
 
-    // Success - check if user has email and emailDisabled is false (Task 2C/2E)
+    // Success - check if user has email and emailDisabled is false
     if (user.email && !user.emailDisabled) {
-      // Step 1: Username + password ok, but requires OTP
       const code = crypto.randomInt(100000, 999999).toString()
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
@@ -107,7 +104,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ requiresOtp: true, userId: user.id })
     }
 
-    // No email or emailDisabled: true -> login succeeds immediately
+    // No 2FA needed - login succeeds
     const userAgent = req.headers.get('user-agent') || 'Unknown'
     const token = await createResellerSession(user.id, ip, userAgent)
     const cookie = setSessionCookie(token)
