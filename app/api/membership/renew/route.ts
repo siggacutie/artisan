@@ -13,7 +13,7 @@ const MEMBERSHIP_PRICES: Record<number, number> = {
 export async function POST(req: NextRequest) {
   if (!validateOrigin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const session = await getResellerSession(req)
+  const session = await getResellerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { months } = await req.json()
