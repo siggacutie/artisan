@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import QRCode from 'qrcode'
 import crypto from 'crypto'
 
-const ALLOWED_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
+const ALLOWED_AMOUNTS = [1, 100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 const UPI_ID = process.env.UPI_ID || 'noblessem@ybl'
 const STORE_NAME = 'ArtisanStore'
 

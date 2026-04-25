@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Coins, QrCode, Copy, CheckCircle, AlertTriangle, Info, ArrowLeft, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
-const AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
+const AMOUNTS = [1, 100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 
 // UTR Help Modal content
 const UTR_HELP = [
@@ -214,8 +214,26 @@ export default function AddFundsPage() {
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     boxShadow: selectedAmount === amount ? '0 0 0 1px rgba(255,215,0,0.3)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
+                  {amount === 1 && (
+                    <div style={{
+                      fontSize: '9px',
+                      fontFamily: 'Inter',
+                      color: '#f59e0b',
+                      background: 'rgba(245,158,11,0.1)',
+                      border: '1px solid rgba(245,158,11,0.2)',
+                      borderRadius: '4px',
+                      padding: '1px 5px',
+                      marginBottom: '4px',
+                    }}>
+                      TEST
+                    </div>
+                  )}
                   <div style={{ color: selectedAmount === amount ? '#ffd700' : '#e2e8f0', fontFamily: 'Orbitron', fontSize: '15px', fontWeight: '700' }}>
                     {amount}
                   </div>
