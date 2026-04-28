@@ -38,7 +38,7 @@ async function main() {
       userId: user.id,
       gameId: game.id,
       productId: pkg.id,
-      unitPrice: pkg.resellerPrice || pkg.displayPrice || 0,
+      unitPrice: pkg.basePriceInr || pkg.displayPrice || 0,
       paymentStatus: 'PAID',
       orderStatus: 'PENDING',
       type: 'TOPUP',
@@ -47,7 +47,7 @@ async function main() {
         zoneId: '1234'
       },
       paymentMethod: 'WALLET',
-      totalPrice: pkg.resellerPrice || pkg.displayPrice || 0
+      totalPrice: pkg.basePriceInr || pkg.displayPrice || 0
     }
   })
 
