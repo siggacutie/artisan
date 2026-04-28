@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const game = await prisma.game.findUnique({
-      where: { slug: 'mobile-legends' }
+      where: { slug: 'mlbb' }
     })
 
     if (!game) {

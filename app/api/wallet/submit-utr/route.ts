@@ -104,9 +104,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This payment link has expired. Please create a new one.' }, { status: 400 })
   }
 
-  // Save UTR — extend expiry by 24 hours to give time for manual verification
+  // Save UTR
   const extendedExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
-
   await prisma.paymentLink.update({
     where: { id: paymentLink.id },
     data: {
@@ -117,7 +116,61 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Send Discord notification for manual review
+  // Check if we already have a pending notification for this UTR from the listener
+  const pendingNotif = await prisma.pendingNotification.findUnique({
+    where: { utrNumber: cleanUtr }
+  })
+
+  if (pendingNotif) {
+    console.log(`[submit-utr] Matching notification found for UTR ${cleanUtr}. Crediting instantly.`)
+    
+    // Atomically credit wallet and clean up
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { walletBalance: { increment: paymentLink.amount } },
+      }),
+      prisma.walletTransaction.create({
+        data: {
+          userId,
+          type: 'CREDIT',
+          amount: paymentLink.amount,
+          currency: 'INR',
+          method: 'UPI',
+          referenceId: cleanUtr,
+          status: 'COMPLETED',
+          description: `UPI wallet top-up — UTR: ${cleanUtr}`,
+        },
+      }),
+      prisma.paymentLink.update({
+        where: { id: paymentLink.id },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      }),
+      prisma.pendingNotification.delete({
+        where: { id: pendingNotif.id }
+      })
+    ])
+
+    // Discord notification for instant success
+    await sendDiscord('payment', {
+      title: 'Payment Auto-Matched (Instant Credit)',
+      description: 'User submitted a UTR that matched a previously caught listener notification. Wallet credited instantly.',
+      color: 0x22c55e, // Green
+      fields: [
+        { name: 'User', value: session.username || userId, inline: true },
+        { name: 'Amount', value: `Rs ${paymentLink.amount}`, inline: true },
+        { name: 'UTR', value: cleanUtr, inline: false },
+      ],
+    }, 'ArtisanStore Payments')
+
+    return NextResponse.json({
+      success: true,
+      instant: true,
+      message: 'Payment verified instantly! Your wallet has been credited.',
+    })
+  }
+
+  // Normal flow if no match found yet
   await sendDiscord('payment', {
     title: 'UTR Submitted — Pending Verification',
     color: 0xf59e0b,

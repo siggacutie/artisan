@@ -176,20 +176,38 @@ export async function POST(req: NextRequest) {
   })
 
   if (!payment) {
-    console.log('[payments/confirm] No payment found for UTR:', utrNumber)
-    // Log to Discord — might be a valid payment we need to manually match
-    await sendDiscord('payment', {
-      title: 'Payment received but no matching UTR in system',
-      color: 0xef4444,
-      fields: [
-        { name: 'UTR', value: utrNumber, inline: true },
-        { name: 'Amount', value: amountVerified ? `Rs ${amountVerified}` : 'Unknown', inline: true },
-      ],
-    }, 'ArtisanStore Payments')
-    
-    return NextResponse.json({ received: true, matched: false })
-  }
+    console.log('[payments/confirm] No payment found for UTR:', utrNumber, '. Saving to PendingNotification.')
 
+    try {
+      await prisma.pendingNotification.upsert({
+        where: { utrNumber },
+        update: {
+          amount: amountVerified ?? 0,
+          notification: body
+        },
+        create: {
+          utrNumber,
+          amount: amountVerified ?? 0,
+          notification: body
+        }
+      })
+
+      // Still log to Discord but as a "Queued" status instead of Red "Error"
+      await sendDiscord('payment', {
+        title: 'Payment Received (Queued for UTR)',
+        description: 'Listener caught a payment before the user submitted the UTR. It has been saved and will credit automatically when they submit.',
+        color: 0x3b82f6, // Blue
+        fields: [
+          { name: 'UTR', value: utrNumber, inline: true },
+          { name: 'Amount', value: amountVerified ? `Rs ${amountVerified}` : 'Unknown', inline: true },
+        ],
+      }, 'ArtisanStore Payments')
+    } catch (err) {
+      console.error('[payments/confirm] Failed to save PendingNotification:', err)
+    }
+
+    return NextResponse.json({ received: true, matched: false, queued: true })
+  }
   if (payment.status === 'COMPLETED') {
     return NextResponse.json({ received: true, alreadyDone: true })
   }
