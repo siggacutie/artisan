@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { sendDiscord } from '@/lib/discord'
 
 export async function POST(req: NextRequest) {
-  const secret = req.headers.get('x-bot-secret')
-  if (secret !== process.env.BOT_SECRET) {
+  const secret = req.headers.get('x-bot-secret')?.trim()
+  const botSecret = process.env.BOT_SECRET?.trim()
+
+  if (!botSecret || secret !== botSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
