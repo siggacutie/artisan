@@ -78,6 +78,9 @@ export default function Navbar() {
 
   if (loading) return null
 
+  // Hide top navbar on mobile landing page for cleaner look
+  if (isMobile && pathname === '/') return null
+
   const publicRoutes = ['/', '/terms', '/privacy', '/refund', '/contact']
   const isPublicPage = publicRoutes.includes(pathname) && !user
   const forcePublicMode = ['/terms', '/privacy', '/refund', '/contact'].includes(pathname)

@@ -188,7 +188,21 @@ export default function OrdersAdminPage() {
                     <td className="px-6 py-4">
                        <div className="flex items-center gap-2">
                           <Gem size={12} className="text-blue-400" />
-                          <p className="text-white text-sm font-bold">{order.notes || 'Package'}</p>
+                          <div className="flex flex-col">
+                             <p className="text-white text-sm font-bold">
+                                {(() => {
+                                  if (!order.notes) return 'Package';
+                                  if (order.notes.includes('|')) return order.notes.split('|')[0].trim();
+                                  if (order.notes.includes('Bot error')) return 'Package';
+                                  return order.notes;
+                                })()}
+                             </p>
+                             {order.notes && order.notes.includes('|') && (
+                                <p className="text-gray-500 text-[10px] font-medium italic">
+                                   {order.notes.split('|').slice(1).join('|').trim()}
+                                </p>
+                             )}
+                          </div>
                        </div>
                     </td>
                     <td className="px-6 py-4">

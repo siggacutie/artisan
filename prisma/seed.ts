@@ -103,7 +103,7 @@ async function main() {
       description: 'Top up MLBB diamonds instantly.',
       isActive: true,
       supplierName: 'smile.one',
-      supplierBaseUrl: 'https://www.smile.one/merchant/mobilelegends',
+      supplierBaseUrl: 'https://smile.one/merchant/mobilelegends',
     },
   })
 

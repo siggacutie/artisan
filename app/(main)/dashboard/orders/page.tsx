@@ -135,7 +135,14 @@ export default function OrdersPage() {
                 <div>
                   <div className="flex items-center gap-3">
                     <span style={{ color: '#00c3ff', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                      {order.notes?.split('|')[0]?.trim() || (order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order')}
+                      {(() => {
+                        if (!order.notes) return order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order';
+                        // If notes contains Bot error or Delivered, the package name should be before the first |
+                        if (order.notes.includes('|')) return order.notes.split('|')[0].trim();
+                        // Fallback if no | but contains Bot error
+                        if (order.notes.includes('Bot error')) return order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order';
+                        return order.notes;
+                      })()}
                     </span>
                     <button 
                       onClick={() => {

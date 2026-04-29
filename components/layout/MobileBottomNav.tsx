@@ -16,6 +16,8 @@ const tabs = [
 export function MobileBottomNav() {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -24,7 +26,22 @@ export function MobileBottomNav() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  if (!isMobile) return null
+  useEffect(() => {
+    if (!isMobile) return;
+    fetch('/api/reseller/auth/me')
+      .then(async r => {
+        if (r.ok) {
+          const data = await r.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [isMobile])
+
+  if (!isMobile || loading || !user) return null
 
   return (
     <nav style={{

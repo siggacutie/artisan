@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
       productId: true,
       gameId: true,
       game: {
-        select: { supplierConfig: true }
+        select: { 
+          supplierConfig: true,
+          supplierBaseUrl: true 
+        }
       }
     },
     orderBy: { createdAt: 'asc' },
@@ -37,13 +40,26 @@ export async function GET(req: NextRequest) {
       })
       
       const inputs = order.playerInputs as any
+      const user_id = String(inputs?.playerId || inputs?.user_id || '')
+      const zone_id = String(inputs?.zoneId || inputs?.zone_id || '')
       
       return {
         ...order,
         supplierProductId: pkg?.supplierProductId ?? order.productId,
-        // Map keys for bot compatibility
-        user_id: inputs?.playerId || inputs?.user_id,
-        zone_id: inputs?.zoneId || inputs?.zone_id,
+        supplierBaseUrl: order.game.supplierBaseUrl,
+        // Map keys for bot compatibility at root
+        user_id,
+        zone_id,
+        // Also ensure they are inside playerInputs for legacy bot versions
+        playerInputs: {
+          ...inputs,
+          user_id,
+          zone_id,
+          userId: user_id,
+          zoneId: zone_id,
+          playerId: user_id,
+          zone_ID: zone_id
+        }
       }
     })
   )

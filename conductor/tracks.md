@@ -82,3 +82,9 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/artisan_puppeteer_integration/](./tracks/artisan_puppeteer_integration/)*
 - [x] **Track: Fix Puppeteer Credentials and Order History Details**
   *Link: [./tracks/fix_puppeteer_credentials_and_history_20260429/](./tracks/fix_puppeteer_credentials_and_history_20260429/)*
+- [x] **Track: Fix Bot Credentials Mapping and Order UI Titles**
+  *Link: [./tracks/fix_bot_credentials_and_ui_titles_20260429/](./tracks/fix_bot_credentials_and_ui_titles_20260429/)*
+- [x] **Track: Fix Mobile Navbar on Landing Page**
+  *Link: [./tracks/fix_mobile_navbar_landing_page_20260429/](./tracks/fix_mobile_navbar_landing_page_20260429/)*
+- [x] **Track: Fix Smile.one DNS Resolution and Supplier Config**
+  *Link: [./tracks/fix_smileone_dns_resolution_20260429/](./tracks/fix_smileone_dns_resolution_20260429/)*
