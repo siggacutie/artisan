@@ -135,18 +135,34 @@ export default function OrdersPage() {
                 <div>
                   <div className="flex items-center gap-3">
                     <span style={{ color: '#00c3ff', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                      {order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order'}
+                      {order.notes?.split('|')[0]?.trim() || (order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order')}
                     </span>
-                    <span style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700' }}>#{order.id.substring(0, 8)}</span>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(order.id);
+                        alert('Order ID copied to clipboard');
+                      }}
+                      style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                      title="Click to copy full Order ID"
+                    >
+                      #{order.id.substring(0, 8)}...
+                    </button>
                   </div>
                   <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '700', marginTop: '4px' }}>
                     {Math.ceil(order.totalPrice)} <span style={{ fontSize: '12px', opacity: 0.8 }}>COINS</span>
                   </div>
-                  {order.playerUsername && (
-                    <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>
-                      Player: <span style={{ color: '#e2e8f0' }}>{order.playerUsername}</span>
-                    </div>
-                  )}
+                  <div className="flex flex-col gap-1 mt-2">
+                    {order.playerUsername && (
+                      <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', fontWeight: '500' }}>
+                        Player: <span style={{ color: '#e2e8f0' }}>{order.playerUsername}</span>
+                      </div>
+                    )}
+                    {order.notes && order.notes.includes('|') && (
+                      <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '400', fontStyle: 'italic' }}>
+                        {order.notes.split('|').slice(1).join('|').trim()}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

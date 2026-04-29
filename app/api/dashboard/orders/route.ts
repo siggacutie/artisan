@@ -13,8 +13,19 @@ export async function GET() {
   }
 
   try {
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000)
+
     const orders = await prisma.order.findMany({
-      where: { userId: user.id },
+      where: { 
+        userId: user.id,
+        OR: [
+          { orderStatus: { notIn: ['FAILED', 'REFUNDED'] } },
+          { 
+            orderStatus: { in: ['FAILED', 'REFUNDED'] },
+            createdAt: { gte: sixHoursAgo }
+          }
+        ]
+      },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: {
@@ -26,7 +37,8 @@ export async function GET() {
         createdAt: true,
         mlbbUsername: true,
         playerInputs: true,
-        completedAt: true
+        completedAt: true,
+        notes: true
       }
     })
 

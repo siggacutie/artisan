@@ -32,12 +32,18 @@ export async function GET(req: NextRequest) {
   const formattedOrders = await Promise.all(
     orders.map(async (order) => {
       const pkg = await prisma.diamondPackage.findFirst({
-        where: { id: order.productId },
+        where: { supplierProductId: order.productId },
         select: { supplierProductId: true },
       })
+      
+      const inputs = order.playerInputs as any
+      
       return {
         ...order,
-        supplierProductId: pkg?.supplierProductId ?? null,
+        supplierProductId: pkg?.supplierProductId ?? order.productId,
+        // Map keys for bot compatibility
+        user_id: inputs?.playerId || inputs?.user_id,
+        zone_id: inputs?.zoneId || inputs?.zone_id,
       }
     })
   )

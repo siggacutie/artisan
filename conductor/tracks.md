@@ -80,3 +80,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_prompt3_errors_20260428/](./tracks/fix_prompt3_errors_20260428/)*
 - [ ] **Track: Artisan Puppeteer Bot Integration & Deployment**
   *Link: [./tracks/artisan_puppeteer_integration/](./tracks/artisan_puppeteer_integration/)*
+- [x] **Track: Fix Puppeteer Credentials and Order History Details**
+  *Link: [./tracks/fix_puppeteer_credentials_and_history_20260429/](./tracks/fix_puppeteer_credentials_and_history_20260429/)*

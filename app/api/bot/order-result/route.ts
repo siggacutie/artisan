@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       data: {
         orderStatus: 'COMPLETED',
         completedAt: new Date(),
-        notes: `Delivered to ${playerName ?? 'unknown'}. URL: ${finalUrl ?? 'N/A'}`,
+        notes: `${order.notes ? order.notes + ' | ' : ''}Delivered to ${playerName ?? 'unknown'}${finalUrl ? '. URL: ' + finalUrl : ''}`,
       },
     })
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       where: { id: orderId },
       data: {
         orderStatus: 'FAILED',
-        notes: `Bot error: ${error ?? 'unknown'}`,
+        notes: `${order.notes ? order.notes + ' | ' : ''}Bot error: ${error ?? 'unknown'}`,
       },
     })
 
