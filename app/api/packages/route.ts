@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { generatePackageLabel } from '@/lib/pricing'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,39 +21,13 @@ const SMILECOIN_COSTS: Record<string, number> = {
   'mlbb-epic':   196.5,
 }
 
-const DISPLAY_NAMES: Record<string, string> = {
-  'mlbb-78':     '78 + 8 Diamonds',
-  'mlbb-156':    '156 + 16 Diamonds',
-  'mlbb-234':    '234 + 23 Diamonds',
-  'mlbb-625':    '625 + 81 Diamonds',
-  'mlbb-1860':   '1860 + 335 Diamonds',
-  'mlbb-3099':   '3099 + 589 Diamonds',
-  'mlbb-4649':   '4649 + 883 Diamonds',
-  'mlbb-d50':    '50 + 5 Diamonds',
-  'mlbb-d150':   '150 + 15 Diamonds',
-  'mlbb-d250':   '250 + 25 Diamonds',
-  'mlbb-d500':   '500 + 65 Diamonds',
-  'mlbb-weekly': 'Weekly Diamond Pass',
-  'mlbb-elite':  'Elite Weekly Package',
-  'mlbb-epic':   'Epic Monthly Package',
-}
-
 export async function GET(req: Request) {
   try {
     const isLanding = new URL(req.url).searchParams.get('landing') === 'true'
 
-    const config = await prisma.smilecoinConfig.findFirst({
-      orderBy: { updatedAt: 'desc' },
-    })
-
-    if (!config) {
-      return NextResponse.json({ error: 'Pricing config not found' }, { status: 500 })
-    }
-
     const pricingConfig = await prisma.pricingConfig.findFirst()
     const landingDiscount = isLanding ? (pricingConfig?.landingPageDiscountPercent ?? 0) : 0
 
-    const inrPerSmilecoin = config.inrPaid / config.smilecoinsAmount
     const packages = await prisma.diamondPackage.findMany({
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
@@ -60,14 +35,13 @@ export async function GET(req: Request) {
     })
 
     const result = packages.map((pkg) => {
-      const smilecoins = SMILECOIN_COSTS[pkg.id] ?? 0
-      const basePrice = Math.ceil(smilecoins * inrPerSmilecoin * (1 + config.markupPercent / 100))
+      const basePrice = pkg.basePriceInr
       
       const displayPrice = isLanding && landingDiscount > 0
         ? Math.ceil(basePrice * (1 - landingDiscount / 100))
-        : basePrice
+        : (pkg.displayPrice || basePrice)
 
-      const displayName = DISPLAY_NAMES[pkg.id] ?? `${pkg.diamondAmount} Diamonds`
+      const displayName = generatePackageLabel(pkg)
 
       return {
         id: pkg.id,
@@ -79,7 +53,7 @@ export async function GET(req: Request) {
         section: pkg.section,
         sortOrder: pkg.sortOrder,
         supplierProductId: pkg.supplierProductId,
-        resellerPrice: isLanding ? displayPrice : basePrice,
+        resellerPrice: basePrice,
         displayPrice: displayPrice,
       }
     })

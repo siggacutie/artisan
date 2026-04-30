@@ -144,6 +144,25 @@ export default function OrdersPage() {
                         } else {
                           name = order.notes;
                         }
+
+                        // Fix for old orders with partial or incorrect labels
+                        if (name === '0 Diamonds' || name === 'Diamond Top-Up') {
+                          if (order.totalPrice >= 140 && order.totalPrice <= 160) name = 'Weekly Diamond Pass';
+                          else if (order.totalPrice >= 70 && order.totalPrice <= 85) name = 'Elite Weekly Package';
+                          else if (order.totalPrice >= 350 && order.totalPrice <= 420) name = 'Epic Monthly Package';
+                        } else if (name.startsWith('+') && name.includes('Diamonds')) {
+                          // Fix for labels that only show the bonus
+                          const bonusMatch = name.match(/\d+/);
+                          if (bonusMatch) {
+                            const bonus = parseInt(bonusMatch[0]);
+                            const mapping: Record<number, number> = {
+                              8: 78, 16: 156, 23: 234, 81: 625, 335: 1860, 589: 3099, 883: 4649,
+                              5: 50, 15: 150, 25: 250, 65: 500
+                            };
+                            if (mapping[bonus]) name = `${mapping[bonus]} ${name}`;
+                          }
+                        }
+
                         // Clean up product name formatting
                         return name
                           .replace(/Diamonds/gi, '💎')

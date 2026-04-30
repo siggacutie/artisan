@@ -90,3 +90,9 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_puppeteer_bot_prompt3_issues_20260430/](./tracks/fix_puppeteer_bot_prompt3_issues_20260430/)*
 - [x] **Track: UI and Orders Fixes (Mobile Logout, Orders Cleanup, Product Names)**
   *Link: [./tracks/fix_ui_and_orders_20260430/](./tracks/fix_ui_and_orders_20260430/)*
+- [x] **Track: Fix Puppeteer Session Persistence (@prompt3.md)**
+  *Link: [./tracks/fix_puppeteer_session_20260430_v2/](./tracks/fix_puppeteer_session_20260430_v2/)*
+- [x] **Track: Fix Package Naming in Order History (@prompt3.md)**
+  *Link: [./tracks/fix_package_naming_20260430/](./tracks/fix_package_naming_20260430/)*
+- [x] **Track: Pricing Sync and Wallet Deduction Fix (@prompt3.md)**
+  *Link: [./tracks/pricing_sync_and_deduction_20260430/](./tracks/pricing_sync_and_deduction_20260430/)*

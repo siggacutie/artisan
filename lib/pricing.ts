@@ -46,14 +46,23 @@ export function calculatePrice(basePrice: number, markupPercent: number) {
   return Math.ceil(basePrice * (1 + markupPercent / 100))
 }
 
-export function generatePackageLabel(pkg: { diamondAmount: number; bonusDiamonds: number; bonusLabel?: string | null }) {
-  if (pkg.bonusLabel && pkg.bonusLabel.length > 2) return pkg.bonusLabel;
-  
-  const total = pkg.diamondAmount + pkg.bonusDiamonds;
-  if (pkg.bonusDiamonds > 0) {
-    return `${pkg.diamondAmount} + ${pkg.bonusDiamonds} Diamonds`;
+export function generatePackageLabel(pkg: { id?: string; diamondAmount: number; bonusDiamonds: number; bonusLabel?: string | null }) {
+  // Try to find in definitions first
+  const definition = PACKAGE_DEFINITIONS.find(d => d.id === pkg.id)
+  if (definition) return definition.label
+
+  if (pkg.bonusLabel && pkg.bonusLabel.length > 2) {
+    // If it starts with + and we have diamond amount, prepend it for clarity
+    if (pkg.bonusLabel.startsWith('+') && pkg.diamondAmount > 0) {
+      return `${pkg.diamondAmount} ${pkg.bonusLabel}`
+    }
+    return pkg.bonusLabel
   }
-  return `${pkg.diamondAmount} Diamonds`;
+  
+  if (pkg.bonusDiamonds > 0) {
+    return `${pkg.diamondAmount} + ${pkg.bonusDiamonds} Diamonds`
+  }
+  return pkg.diamondAmount > 0 ? `${pkg.diamondAmount} Diamonds` : 'Diamond Top-Up'
 }
 
 export async function getCurrentPrices() {
@@ -72,7 +81,6 @@ export async function getPackagesWithPrices(userMarkupPercent?: number, reseller
   const { userMarkup, resellerMarkup, lastUpdated } = await getPricingSettings()
   
   const uMarkup = userMarkupPercent !== undefined ? userMarkupPercent : userMarkup
-  const rMarkup = resellerMarkupPercent !== undefined ? resellerMarkupPercent : resellerMarkup
 
   const dbPackages = await prisma.diamondPackage.findMany({
     where: { isVisible: true },
@@ -80,15 +88,19 @@ export async function getPackagesWithPrices(userMarkupPercent?: number, reseller
   })
 
   return dbPackages.map(pkg => {
-    const userPrice = calculatePrice(pkg.basePriceInr, uMarkup)
-    const resellerPrice = calculatePrice(pkg.basePriceInr, rMarkup)
+    // basePriceInr is the price configured in admin (already includes SmileCoin markup)
+    // For resellers, we use this price directly.
+    // For non-logged users (landing page), we can apply an optional markup.
+    const basePrice = pkg.basePriceInr
+    const userPrice = calculatePrice(basePrice, uMarkup)
+    const resellerPrice = basePrice 
     
     return {
       id: pkg.id,
       label: generatePackageLabel(pkg),
       diamondAmount: pkg.diamondAmount,
       bonusDiamonds: pkg.bonusDiamonds,
-      basePriceInr: pkg.basePriceInr,
+      basePriceInr: basePrice,
       userPrice,
       resellerPrice,
       price: userPrice, // Backward compatibility
