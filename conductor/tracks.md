@@ -88,3 +88,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_mobile_navbar_landing_page_20260429/](./tracks/fix_mobile_navbar_landing_page_20260429/)*
 - [x] **Track: Fix Puppeteer Bot issues (prompt3.md)**
   *Link: [./tracks/fix_puppeteer_bot_prompt3_issues_20260430/](./tracks/fix_puppeteer_bot_prompt3_issues_20260430/)*
+- [x] **Track: UI and Orders Fixes (Mobile Logout, Orders Cleanup, Product Names)**
+  *Link: [./tracks/fix_ui_and_orders_20260430/](./tracks/fix_ui_and_orders_20260430/)*

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       data: {
         orderStatus: 'COMPLETED',
         completedAt: new Date(),
-        notes: `${order.notes ? order.notes + ' | ' : ''}Delivered to ${playerName ?? 'unknown'}${finalUrl ? '. URL: ' + finalUrl : ''}`,
+        notes: `${order.notes ? order.notes + ' | ' : ''}Delivered to ${playerName ?? 'unknown'}`,
       },
     })
 

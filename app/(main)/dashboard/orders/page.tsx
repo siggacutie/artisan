@@ -134,14 +134,24 @@ export default function OrdersPage() {
                 
                 <div>
                   <div className="flex items-center gap-3">
-                    <span style={{ color: '#00c3ff', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    <span style={{ color: '#00c3ff', fontFamily: 'Inter', fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       {(() => {
-                        if (!order.notes) return order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order';
-                        // If notes contains Bot error or Delivered, the package name should be before the first |
-                        if (order.notes.includes('|')) return order.notes.split('|')[0].trim();
-                        // Fallback if no | but contains Bot error
-                        if (order.notes.includes('Bot error')) return order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order';
-                        return order.notes;
+                        let name = '';
+                        if (!order.notes) {
+                          name = order.type === 'TOPUP' ? 'Diamond Top-Up' : 'Order';
+                        } else if (order.notes.includes('|')) {
+                          name = order.notes.split('|')[0].trim();
+                        } else {
+                          name = order.notes;
+                        }
+                        // Clean up product name formatting
+                        return name
+                          .replace(/Diamonds/gi, '💎')
+                          .replace(/Weekly Diamond Pass/gi, 'Weekly Pass 🎫')
+                          .replace(/Elite Weekly Package/gi, 'Elite Pass 🛡️')
+                          .replace(/Epic Monthly Package/gi, 'Epic Pass 👑')
+                          .replace(/\s+\+\s+/g, '+')
+                          .trim();
                       })()}
                     </span>
                     <button 
@@ -152,23 +162,11 @@ export default function OrdersPage() {
                       style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '700', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                       title="Click to copy full Order ID"
                     >
-                      #{order.id.substring(0, 8)}...
+                      #{order.id.substring(0, 8)}
                     </button>
                   </div>
-                  <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '700', marginTop: '4px' }}>
-                    {Math.ceil(order.totalPrice)} <span style={{ fontSize: '12px', opacity: 0.8 }}>COINS</span>
-                  </div>
-                  <div className="flex flex-col gap-1 mt-2">
-                    {order.playerUsername && (
-                      <div style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: '12px', fontWeight: '500' }}>
-                        Player: <span style={{ color: '#e2e8f0' }}>{order.playerUsername}</span>
-                      </div>
-                    )}
-                    {order.notes && order.notes.includes('|') && (
-                      <div style={{ color: '#64748b', fontFamily: 'Inter', fontSize: '11px', fontWeight: '400', fontStyle: 'italic' }}>
-                        {order.notes.split('|').slice(1).join('|').trim()}
-                      </div>
-                    )}
+                  <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '18px', fontWeight: '700', marginTop: '4px' }}>
+                    {Math.ceil(order.totalPrice)} <span style={{ fontSize: '11px', opacity: 0.8 }}>COINS</span>
                   </div>
                 </div>
               </div>
@@ -196,8 +194,15 @@ export default function OrdersPage() {
                 }}>
                   {order.orderStatus}
                 </div>
-                <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '600' }}>
-                  {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', fontWeight: '600', textAlign: 'right' }}>
+                  {order.orderStatus === 'COMPLETED' && order.completedAt ? (
+                    <>
+                      <div style={{ color: '#94a3b8', fontSize: '9px', textTransform: 'uppercase', marginBottom: '2px' }}>Delivered At</div>
+                      {new Date(order.completedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </>
+                  ) : (
+                    new Date(order.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  )}
                 </div>
               </div>
             </div>

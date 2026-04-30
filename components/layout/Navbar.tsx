@@ -127,19 +127,28 @@ export default function Navbar() {
 
       {/* Wallet chip only on mobile */}
       {isMobile && user && (
-        <a href="/wallet/add" style={{
-          background: 'rgba(255,215,0,0.08)',
-          border: '1px solid rgba(255,215,0,0.2)',
-          borderRadius: '20px',
-          padding: '6px 14px',
-          color: '#ffd700',
-          fontFamily: 'Orbitron',
-          fontSize: '13px',
-          fontWeight: '700',
-          textDecoration: 'none',
-        }}>
-          {Math.floor((user.walletBalance ?? 0))} coins
-        </a>
+        <div className="flex items-center gap-2">
+          <a href="/wallet/add" style={{
+            background: 'rgba(255,215,0,0.08)',
+            border: '1px solid rgba(255,215,0,0.2)',
+            borderRadius: '20px',
+            padding: '6px 14px',
+            color: '#ffd700',
+            fontFamily: 'Orbitron',
+            fontSize: '13px',
+            fontWeight: '700',
+            textDecoration: 'none',
+          }}>
+            {Math.floor((user.walletBalance ?? 0))} coins
+          </a>
+          <button 
+            onClick={handleSignOut}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-all"
+            title="Sign Out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       )}
 
       {/* Desktop nav links and User dropdown — hidden on mobile */}
