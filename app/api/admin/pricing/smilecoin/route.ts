@@ -17,29 +17,25 @@ export async function PATCH(req: NextRequest) {
 
   const config = await prisma.smilecoinConfig.findFirst()
 
-  const updatedConfig = await prisma.$transaction(async (tx) => {
-    const updated = await tx.smilecoinConfig.upsert({
-      where: { id: config?.id || 'default' },
-      update: { smilecoinsAmount, inrPaid, markupPercent },
-      create: { smilecoinsAmount, inrPaid, markupPercent },
-    })
-
-    // Update all packages based on new rate
-    const inrPerSmilecoin = inrPaid / smilecoinsAmount
-    
-    for (const def of PACKAGE_DEFINITIONS) {
-      const basePriceInr = Math.ceil(def.smilecoins * inrPerSmilecoin * (1 + markupPercent / 100))
-      await tx.diamondPackage.updateMany({
-        where: { id: def.id },
-        data: { 
-          basePriceInr,
-          displayPrice: basePriceInr // Default display price matches base
-        }
-      })
-    }
-
-    return updated
+  const updatedConfig = await prisma.smilecoinConfig.upsert({
+    where: { id: config?.id || 'default' },
+    update: { smilecoinsAmount, inrPaid, markupPercent },
+    create: { smilecoinsAmount, inrPaid, markupPercent },
   })
+
+  // Update all packages based on new rate
+  const inrPerSmilecoin = inrPaid / smilecoinsAmount
+
+  for (const def of PACKAGE_DEFINITIONS) {
+    const basePriceInr = Math.ceil(def.smilecoins * inrPerSmilecoin * (1 + markupPercent / 100))
+    await prisma.diamondPackage.updateMany({
+      where: { id: def.id },
+      data: {
+        basePriceInr,
+        displayPrice: basePriceInr // Default display price matches base
+      }
+    })
+  }
 
   return NextResponse.json(updatedConfig)
 }

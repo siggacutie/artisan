@@ -96,3 +96,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_package_naming_20260430/](./tracks/fix_package_naming_20260430/)*
 - [x] **Track: Pricing Sync and Wallet Deduction Fix (@prompt3.md)**
   *Link: [./tracks/pricing_sync_and_deduction_20260430/](./tracks/pricing_sync_and_deduction_20260430/)*
+- [x] **Track: Fix Prisma Transaction Timeouts**
+  *Link: [./tracks/fix_prisma_transaction_timeouts/](./tracks/fix_prisma_transaction_timeouts/plan.md)*
