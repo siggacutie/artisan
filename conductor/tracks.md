@@ -86,5 +86,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_bot_credentials_and_ui_titles_20260429/](./tracks/fix_bot_credentials_and_ui_titles_20260429/)*
 - [x] **Track: Fix Mobile Navbar on Landing Page**
   *Link: [./tracks/fix_mobile_navbar_landing_page_20260429/](./tracks/fix_mobile_navbar_landing_page_20260429/)*
-- [x] **Track: Fix Smile.one DNS Resolution and Supplier Config**
-  *Link: [./tracks/fix_smileone_dns_resolution_20260429/](./tracks/fix_smileone_dns_resolution_20260429/)*
+- [x] **Track: Fix Puppeteer Bot issues (prompt3.md)**
+  *Link: [./tracks/fix_puppeteer_bot_prompt3_issues_20260430/](./tracks/fix_puppeteer_bot_prompt3_issues_20260430/)*

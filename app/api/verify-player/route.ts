@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const timeout = setTimeout(() => controller.abort(), 10000)
 
     try {
-        const response = await fetch('https://smile.one/merchant/mobilelegends/checkrole', {
+        const response = await fetch('https://www.smile.one/merchant/mobilelegends/checkrole', {
           method: 'POST',
           body: formData,
           signal: controller.signal,
