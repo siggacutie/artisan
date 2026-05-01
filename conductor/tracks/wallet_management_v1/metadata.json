@@ -1,0 +1,7 @@
+{
+  "id": "wallet_management_v1",
+  "title": "Wallet Management & Custom Deposits",
+  "description": "Allows admins to manually credit/debit user wallets and users to deposit custom amounts.",
+  "status": "completed",
+  "priority": "high"
+}

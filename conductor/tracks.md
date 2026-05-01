@@ -98,3 +98,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/pricing_sync_and_deduction_20260430/](./tracks/pricing_sync_and_deduction_20260430/)*
 - [x] **Track: Fix Prisma Transaction Timeouts**
   *Link: [./tracks/fix_prisma_transaction_timeouts/](./tracks/fix_prisma_transaction_timeouts/plan.md)*
+- [x] **Track: Wallet Management & Custom Deposits**
+  *Link: [./tracks/wallet_management_v1/](./tracks/wallet_management_v1/plan.md)*

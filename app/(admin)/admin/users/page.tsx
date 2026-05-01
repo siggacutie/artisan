@@ -154,6 +154,7 @@ export default function AdminUsersPage() {
         setDurationModalOpen(false)
         setUsernameModalOpen(false)
         setPasswordModalOpen(false)
+        setWalletModalOpen(false)
       } else {
         const err = await res.json()
         toast.error(err.error || "Update failed")
@@ -360,6 +361,11 @@ export default function AdminUsersPage() {
                           <DropdownMenuItem onClick={() => openPasswordModal(user)} className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
                             <Key size={16} className="mr-3" /> 
                             <span className="text-xs font-bold uppercase tracking-widest text-white">Change Password</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => { setSelectedUser(user); setNewWalletBalance(user.walletBalance.toString()); setWalletModalOpen(true); }} className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
+                            <History size={16} className="mr-3" /> 
+                            <span className="text-xs font-bold uppercase tracking-widest text-white">Manage Wallet</span>
                           </DropdownMenuItem>
 
                           <div className="p-1">
@@ -572,6 +578,38 @@ export default function AdminUsersPage() {
               className="flex-1 bg-red-500 text-white font-black uppercase tracking-widest h-12 rounded-xl"
             >
               Revoke Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Wallet Modal */}
+      <Dialog open={walletModalOpen} onOpenChange={setWalletModalOpen}>
+        <DialogContent className="bg-[#0d1120] border-white/5 text-white max-w-md rounded-[2rem]">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron italic uppercase">Manage Wallet Balance</DialogTitle>
+            <DialogDescription className="text-[#64748b]">
+              Set the exact coin balance for {selectedUser?.username || selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-[#64748b]">New Balance (Coins)</label>
+              <Input 
+                type="number"
+                value={newWalletBalance}
+                onChange={e => setNewWalletBalance(e.target.value)}
+                placeholder="Enter amount"
+                className="bg-[#050810] border-white/5 rounded-xl h-12 font-orbitron font-bold text-[#ffd700]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => handlePatch(selectedUser.id, { walletBalance: Number(newWalletBalance) })}
+              className="w-full bg-[#ffd700] text-[#050810] font-black uppercase tracking-widest h-12 rounded-xl shadow-glow-gold"
+            >
+              Update Balance
             </Button>
           </DialogFooter>
         </DialogContent>

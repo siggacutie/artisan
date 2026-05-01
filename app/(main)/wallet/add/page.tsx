@@ -202,7 +202,7 @@ export default function AddFundsPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
               {AMOUNTS.map(amount => (
                 <div
                   key={amount}
@@ -232,6 +232,41 @@ export default function AddFundsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>
+                Or Enter Custom Amount
+              </div>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '14px', top: '13px', color: '#ffd700', fontFamily: 'Orbitron', fontWeight: 'bold' }}>₹</span>
+                <input 
+                  type="number"
+                  value={selectedAmount || ''}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value)
+                    if (isNaN(val)) setSelectedAmount(null)
+                    else setSelectedAmount(val)
+                  }}
+                  placeholder="Min ₹100"
+                  style={{
+                    width: '100%',
+                    background: '#0d1120',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '10px',
+                    padding: '12px 12px 12px 32px',
+                    color: '#ffd700',
+                    fontFamily: 'Orbitron',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div style={{ color: '#475569', fontFamily: 'Inter', fontSize: '11px', marginTop: '6px' }}>
+                1 Coin = ₹1. Enter amount in INR.
+              </div>
             </div>
 
             {error && (

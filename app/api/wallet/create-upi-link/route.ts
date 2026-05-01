@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma'
 import QRCode from 'qrcode'
 import crypto from 'crypto'
 
-const ALLOWED_AMOUNTS = [1, 100, 200, 500, 1000, 1500, 2000, 3000, 5000, 10000]
 const UPI_ID = process.env.UPI_ID || 'noblessem@ybl'
 const STORE_NAME = 'ArtisanStore'
 
@@ -39,8 +38,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const amount = Number(body.amount)
 
-  if (!ALLOWED_AMOUNTS.includes(amount)) {
-    return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+  if (isNaN(amount) || amount < 1 || amount > 50000) {
+    return NextResponse.json({ error: 'Invalid amount (Min ₹1, Max ₹50,000)' }, { status: 400 })
   }
 
   // Generate unique internal reference (8 char alphanumeric)
