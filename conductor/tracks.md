@@ -100,3 +100,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/fix_prisma_transaction_timeouts/](./tracks/fix_prisma_transaction_timeouts/plan.md)*
 - [x] **Track: Wallet Management & Custom Deposits**
   *Link: [./tracks/wallet_management_v1/](./tracks/wallet_management_v1/plan.md)*
+- [x] **Track: Fix Missing Switch Component in Admin Settings**
+  *Link: [./tracks/fix_prompt3_missing_switch_component_20260501/](./tracks/fix_prompt3_missing_switch_component_20260501/)*

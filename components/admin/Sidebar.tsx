@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { label: 'Payment Queue', href: '/admin/payments', icon: CreditCard },
   { label: 'Player Lookup', href: '/admin/lookup', icon: Search },
   { label: 'Invites', href: '/admin/invites', icon: Mail },
+  { label: 'Site Settings', href: '/admin/settings', icon: Settings },
 ]
 
 export default function AdminSidebar() {

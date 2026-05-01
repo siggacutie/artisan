@@ -1,0 +1,8 @@
+{
+  "id": "fix_prompt3_missing_switch_component_20260501",
+  "title": "Fix Missing Switch Component in Admin Settings",
+  "description": "The admin settings page is failing because the shadcn/ui Switch component is missing. This track involves adding the Switch component and ensuring the settings page works correctly.",
+  "status": "in-progress",
+  "created_at": "2026-05-01",
+  "priority": "high"
+}
