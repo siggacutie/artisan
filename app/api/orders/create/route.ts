@@ -31,27 +31,35 @@ export async function POST(req: NextRequest) {
     const { packageId, playerId, zoneId, username, paymentMethod } = await req.json()
 
     // Get current user details from DB to check restrictions and balance
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { id: true, username: true, role: true, isBanned: true, walletBalance: true, tier: true, ordersCount: true },
-    })
+    // We also count PENDING orders to prevent loyalty discount race conditions
+    const [dbUser, pendingOrdersCount] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, username: true, role: true, isBanned: true, walletBalance: true, tier: true, ordersCount: true },
+      }),
+      prisma.order.count({
+        where: { userId: user.id, orderStatus: 'PENDING' }
+      })
+    ])
 
     if (!dbUser || dbUser.isBanned) {
       return NextResponse.json({ error: 'Account restricted' }, { status: 403 })
     }
+
+    const effectiveOrdersCount = (dbUser.ordersCount || 0) + (pendingOrdersCount || 0)
 
     const isReseller = dbUser.role === 'RESELLER'
 
     // Reseller Rate Limiting
     if (isReseller) {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-      const orderCount = await prisma.order.count({
+      const dailyOrderCount = await prisma.order.count({
         where: {
           userId: dbUser.id,
           createdAt: { gte: twentyFourHoursAgo }
         }
       })
-      if (orderCount >= 50) {
+      if (dailyOrderCount >= 50) {
         return NextResponse.json({ error: "Daily order limit reached. Contact support." }, { status: 429 })
       }
     }
@@ -60,7 +68,7 @@ export async function POST(req: NextRequest) {
     const packagesWithPrices = await getPackagesWithPrices(undefined, undefined, dbUser ? {
       id: dbUser.id,
       tier: dbUser.tier,
-      ordersCount: dbUser.ordersCount
+      ordersCount: effectiveOrdersCount
     } : undefined)
     const pkg = packagesWithPrices.find(p => p.id === packageId)
 
@@ -74,7 +82,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid input details' }, { status: 400 })
     }
 
-    const finalPrice = isReseller ? pkg.resellerPrice : pkg.userPrice
+    // Ensure finalPrice is always a whole number (Math.ceil) to prevent floating point discrepancies
+    const finalPrice = Math.ceil(isReseller ? pkg.resellerPrice : pkg.userPrice)
     const safeUsername = username ? sanitizeHtml(username) : 'N/A'
 
     // Idempotency check

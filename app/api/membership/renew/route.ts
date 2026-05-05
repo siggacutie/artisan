@@ -12,10 +12,10 @@ const MEMBERSHIP_PLANS: Record<string, Record<number, number>> = {
     12: 1299,
   },
   PREMIUM: {
-    1: 240,
-    3: 649,
-    6: 1199,
-    12: 2099,
+    1: 200,
+    3: 549,
+    6: 999,
+    12: 1799,
   }
 }
 
@@ -44,21 +44,48 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { newExpiry, finalUser } = await prisma.$transaction(async (tx) => {
+    const { newExpiry, finalUser, startsAt } = await prisma.$transaction(async (tx) => {
       const txUser = await tx.user.findUnique({
         where: { id: session.id },
+        include: { membershipQueue: { orderBy: { expiresAt: 'desc' }, take: 1 } }
       })
 
       if (!txUser) throw new Error('User not found')
       if (txUser.walletBalance < costInr) throw new Error('Insufficient balance')
 
-      const baseDate = !txUser.membershipExpiresAt || new Date(txUser.membershipExpiresAt) < new Date()
-        ? new Date()
-        : new Date(txUser.membershipExpiresAt)
+      // Determine the start date for this new membership segment
+      let baseDate = new Date()
+      
+      // If there's an existing queue, the last item's expiry is our base
+      if (txUser.membershipQueue.length > 0) {
+        const lastItemExpiry = new Date(txUser.membershipQueue[0].expiresAt)
+        if (lastItemExpiry > baseDate) {
+          baseDate = lastItemExpiry
+        }
+      } else if (txUser.membershipExpiresAt && new Date(txUser.membershipExpiresAt) > baseDate) {
+        // Fallback to User.membershipExpiresAt if queue is empty but user has active membership
+        baseDate = new Date(txUser.membershipExpiresAt)
+      }
 
+      const calculatedStartsAt = new Date(baseDate)
       const calculatedExpiry = new Date(baseDate)
       calculatedExpiry.setMonth(calculatedExpiry.getMonth() + Number(months))
 
+      // Create the queue item
+      await tx.membershipItem.create({
+        data: {
+          userId: session.id,
+          tier: selectedTier,
+          months: Number(months),
+          startsAt: calculatedStartsAt,
+          expiresAt: calculatedExpiry,
+        }
+      })
+
+      // Update User fields
+      // If the membership starts NOW (or in the past), we update the tier immediately
+      const isImmediate = calculatedStartsAt <= new Date()
+      
       const updated = await tx.user.update({
         where: { 
           id: session.id,
@@ -67,8 +94,8 @@ export async function POST(req: NextRequest) {
         data: {
           walletBalance: { decrement: costInr },
           membershipExpiresAt: calculatedExpiry,
-          membershipMonths: Number(months),
-          tier: selectedTier,
+          // Only update tier if it's an immediate start or the user had no active membership
+          ...(isImmediate ? { tier: selectedTier } : {}),
           isReseller: true,
           isFrozen: false,
         },

@@ -86,9 +86,32 @@ export async function getResellerSession() {
     })
 
     // Membership expiry enforcement
-    const isExpired = session.user.membershipExpiresAt && new Date(session.user.membershipExpiresAt) < new Date()
+    const now = new Date()
+    const isExpired = session.user.membershipExpiresAt && new Date(session.user.membershipExpiresAt) < now
 
-    return { ...session.user, membershipExpired: isExpired }
+    // Dynamic Tier Resolution (Membership Queue)
+    let activeTier = session.user.tier
+    if (!isExpired) {
+      const currentActiveItem = await prisma.membershipItem.findFirst({
+        where: {
+          userId: session.user.id,
+          startsAt: { lte: now },
+          expiresAt: { gt: now }
+        },
+        orderBy: { startsAt: 'desc' }
+      })
+
+      if (currentActiveItem && currentActiveItem.tier !== session.user.tier) {
+        activeTier = currentActiveItem.tier
+        // Sync the User.tier field for performance and legacy support
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: { tier: activeTier }
+        })
+      }
+    }
+
+    return { ...session.user, tier: activeTier, membershipExpired: isExpired }
   } catch {
     return null
   }

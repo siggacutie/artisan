@@ -21,10 +21,10 @@ const MEMBERSHIP_PLANS: Record<string, Record<number, number>> = {
     12: 1299,
   },
   PREMIUM: {
-    1: 240,
-    3: 649,
-    6: 1199,
-    12: 2099,
+    1: 200,
+    3: 549,
+    6: 999,
+    12: 1799,
   }
 }
 

@@ -108,3 +108,7 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/invite_membership_visibility_20260505/](./tracks/invite_membership_visibility_20260505/plan.md)*
 - [x] **Track: Prompt 3 Mobile UI Fixes**
   *Link: [./tracks/prompt3_mobile_ui_fixes_20260505/](./tracks/prompt3_mobile_ui_fixes_20260505/plan.md)*
+- [x] **Track: Pricing Vulnerability Audit & Fixes**
+  *Link: [./tracks/pricing_vulnerability_audit_20260505/](./tracks/pricing_vulnerability_audit_20260505/plan.md)*
+- [x] **Track: Membership Queue & Pricing Update**
+  *Link: [./tracks/membership_queue_20260505/](./tracks/membership_queue_20260505/plan.md)*

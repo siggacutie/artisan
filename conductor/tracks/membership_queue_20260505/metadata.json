@@ -1,0 +1,7 @@
+{
+  "id": "membership_queue_20260505",
+  "title": "Membership Queue & Pricing Update",
+  "description": "Implement a sequential membership queue system (waiting list model) and reduce Premium recharge price to 200/month.",
+  "status": "IN_PROGRESS",
+  "createdAt": "2026-05-05T19:16:00Z"
+}

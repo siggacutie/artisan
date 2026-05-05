@@ -63,6 +63,7 @@ model User {
   hasSeenOldUserPopup  Boolean             @default(false)
   tosAcceptedAt        DateTime?
   otpCodes             OtpCode[]
+  membershipQueue      MembershipItem[]
   resellerSession      ResellerSession?
   accountsPurchased    AccountListing[]    @relation("SoldToUser")
   loginHistory         LoginHistory[]
@@ -358,4 +359,15 @@ enum OrderType {
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+model MembershipItem {
+  id        String   @id @default(cuid())
+  userId    String
+  tier      String   // BASIC | PREMIUM
+  months    Int
+  startsAt  DateTime
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

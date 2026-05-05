@@ -91,10 +91,12 @@ export async function getPackagesWithPrices(userMarkupPercent?: number, reseller
   }
   
   const userMarkup = pricingConfig?.userMarkupPercent ?? 3.5
+  const resellerMarkup = pricingConfig?.resellerMarkupPercent ?? 1.5
   const basicDiscount = pricingConfig?.basicDiscountPercent ?? 0
   const premiumDiscount = pricingConfig?.premiumDiscountPercent ?? 0
 
   const uMarkup = userMarkupPercent !== undefined ? userMarkupPercent : userMarkup
+  const rMarkup = resellerMarkupPercent !== undefined ? resellerMarkupPercent : resellerMarkup
 
   let dbPackages: any[] = []
   try {
@@ -110,7 +112,7 @@ export async function getPackagesWithPrices(userMarkupPercent?: number, reseller
 
   return dbPackages.map(pkg => {
     const basePrice = pkg.basePriceInr
-    let resellerPrice = basePrice 
+    let resellerPrice = calculatePrice(basePrice, rMarkup) 
 
     // Apply tiered discount if user has < 3 orders
     if (user && user.ordersCount < 3) {
