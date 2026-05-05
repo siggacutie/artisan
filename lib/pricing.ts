@@ -77,24 +77,59 @@ export async function getCurrentPrices() {
   }
 }
 
-export async function getPackagesWithPrices(userMarkupPercent?: number, resellerMarkupPercent?: number) {
-  const { userMarkup, resellerMarkup, lastUpdated } = await getPricingSettings()
+export async function getPackagesWithPrices(userMarkupPercent?: number, resellerMarkupPercent?: number, user?: { id: string, tier: string, ordersCount: number }) {
+  let scConfig: any = null
+  let pricingConfig: any = null
   
+  try {
+    [scConfig, pricingConfig] = await Promise.all([
+      prisma.smilecoinConfig.findFirst(),
+      prisma.pricingConfig.findFirst()
+    ])
+  } catch (err) {
+    console.error("Error fetching pricing config (likely missing columns):", err)
+  }
+  
+  const userMarkup = pricingConfig?.userMarkupPercent ?? 3.5
+  const basicDiscount = pricingConfig?.basicDiscountPercent ?? 0
+  const premiumDiscount = pricingConfig?.premiumDiscountPercent ?? 0
+
   const uMarkup = userMarkupPercent !== undefined ? userMarkupPercent : userMarkup
 
-  const dbPackages = await prisma.diamondPackage.findMany({
-    where: { isVisible: true },
-    orderBy: { sortOrder: 'asc' }
-  })
+  let dbPackages: any[] = []
+  try {
+    dbPackages = await prisma.diamondPackage.findMany({
+      where: { isVisible: true },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (err) {
+    console.error("Error fetching packages:", err)
+  }
+
+  const lastUpdated = scConfig?.updatedAt || new Date()
 
   return dbPackages.map(pkg => {
-    // basePriceInr is the price configured in admin (already includes SmileCoin markup)
-    // For resellers, we use this price directly.
-    // For non-logged users (landing page), we can apply an optional markup.
     const basePrice = pkg.basePriceInr
+    let resellerPrice = basePrice 
+
+    // Apply tiered discount if user has < 3 orders
+    if (user && user.ordersCount < 3) {
+      try {
+        if (user.tier === 'PREMIUM' && premiumDiscount > 0) {
+          resellerPrice = Math.floor(basePrice * (1 - premiumDiscount / 100))
+        } else if (user.tier === 'BASIC' && basicDiscount > 0) {
+          resellerPrice = Math.floor(basePrice * (1 - basicDiscount / 100))
+        }
+      } catch (err) {
+        // Fallback if columns are missing
+      }
+    }
+
     const userPrice = calculatePrice(basePrice, uMarkup)
-    const resellerPrice = basePrice 
     
+    // For landing page (no user), we show standard price
+    const landingPrice = userPrice
+
     return {
       id: pkg.id,
       label: generatePackageLabel(pkg),
@@ -103,6 +138,7 @@ export async function getPackagesWithPrices(userMarkupPercent?: number, reseller
       basePriceInr: basePrice,
       userPrice,
       resellerPrice,
+      landingPrice,
       price: userPrice, // Backward compatibility
       supplierProductId: pkg.supplierProductId,
       section: (pkg as any).section || 'standard',

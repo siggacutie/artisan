@@ -55,6 +55,7 @@ export default function AdminInvitesPage() {
   const [clearingUsers, setClearingUsers] = useState(false)
   const [invites, setInvites] = useState<any[]>([])
   const [selectedMonths, setSelectedMonths] = useState(1)
+  const [selectedTier, setSelectedTier] = useState('BASIC')
   const [requireEmail, setRequireEmail] = useState(true)
   const [newLink, setNewLink] = useState('')
   const [newInviteData, setNewInviteData] = useState<any>(null)
@@ -135,7 +136,7 @@ export default function AdminInvitesPage() {
       const res = await fetch('/api/admin/invite/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ membershipMonths: selectedMonths, requireEmail })
+        body: JSON.stringify({ membershipMonths: selectedMonths, requireEmail, tier: selectedTier })
       })
       const data = await res.json()
       if (data.link) {
@@ -166,6 +167,11 @@ export default function AdminInvitesPage() {
     { label: '3 Months', value: 3 },
     { label: '6 Months', value: 6 },
     { label: '12 Months', value: 12 },
+  ]
+
+  const tiers = [
+    { label: 'Basic', value: 'BASIC' },
+    { label: 'Premium', value: 'PREMIUM' },
   ]
 
   return (
@@ -215,6 +221,25 @@ export default function AdminInvitesPage() {
                     }`}
                   >
                     {d.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-[#64748b] uppercase tracking-widest">Reseller Tier</p>
+              <div className="flex flex-wrap gap-3">
+                {tiers.map((t) => (
+                  <div
+                    key={t.value}
+                    onClick={() => setSelectedTier(t.value)}
+                    className={`px-6 py-3 rounded-xl border cursor-pointer font-bold text-sm transition-all ${
+                      selectedTier === t.value 
+                        ? 'border-[#ffd700] bg-[rgba(255,215,0,0.1)] text-[#ffd700]' 
+                        : 'border-[rgba(255,215,0,0.1)] bg-[#0d1120] text-[#64748b] hover:border-[#ffd700]/30'
+                    }`}
+                  >
+                    {t.label}
                   </div>
                 ))}
               </div>
@@ -287,6 +312,7 @@ export default function AdminInvitesPage() {
                   <tr className="bg-white/5 border-b border-[rgba(255,215,0,0.1)]">
                     <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em]">Token</th>
                     <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] text-center">Duration</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] text-center">Tier</th>
                     <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] text-center">Created</th>
                     <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] text-center">Expires</th>
                     <th className="px-8 py-5 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] text-center">Status</th>
@@ -296,13 +322,13 @@ export default function AdminInvitesPage() {
                 <tbody className="divide-y divide-[rgba(255,215,0,0.05)]">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="px-8 py-12 text-center">
+                      <td colSpan={7} className="px-8 py-12 text-center">
                         <Loader2 className="animate-spin text-[#ffd700] mx-auto w-8 h-8" />
                       </td>
                     </tr>
                   ) : invites.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-8 py-12 text-center text-[#64748b] italic text-sm font-medium">
+                      <td colSpan={7} className="px-8 py-12 text-center text-[#64748b] italic text-sm font-medium">
                         No invite links generated yet
                       </td>
                     </tr>
@@ -316,6 +342,9 @@ export default function AdminInvitesPage() {
                           </td>
                           <td className="px-8 py-5 text-xs font-bold text-center text-white">
                             {invite.membershipMonths} {invite.membershipMonths === 1 ? 'month' : 'months'}
+                          </td>
+                          <td className="px-8 py-5 text-xs font-bold text-center uppercase tracking-widest" style={{ color: invite.tier === 'PREMIUM' ? '#00c3ff' : '#64748b' }}>
+                            {invite.tier || 'BASIC'}
                           </td>
                           <td className="px-8 py-5 text-[11px] font-medium text-center text-[#64748b]">
                             {format(new Date(invite.createdAt), 'dd MMM yyyy')}

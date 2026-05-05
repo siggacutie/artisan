@@ -24,6 +24,7 @@ export async function GET(
     return NextResponse.json({ 
       valid: true, 
       membershipMonths: invite.membershipMonths ?? 1,
+      tier: invite.tier,
       requireEmail: invite.requireEmail
     })
   } catch (error) {

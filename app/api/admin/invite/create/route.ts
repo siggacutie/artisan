@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const membershipMonths: number = Number(body.membershipMonths) || 1
     const requireEmail: boolean = body.requireEmail !== undefined ? Boolean(body.requireEmail) : true
+    const tier: string = body.tier || 'BASIC'
 
     if (![1, 3, 6, 12].includes(membershipMonths)) {
       return NextResponse.json({ error: 'Invalid membership duration' }, { status: 400 })
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
         expiresAt,
         membershipMonths,
         requireEmail,
+        tier,
       },
     })
 

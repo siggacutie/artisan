@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Loader2 } from 'lucide-react'
+import { MessageCircle, Loader2, Info } from 'lucide-react'
 
 interface PackageItem {
   id: string
@@ -11,6 +11,8 @@ interface PackageItem {
   section: string
   resellerPrice: number
   diamondAmount: number
+  basicPrice?: number
+  premiumPrice?: number
 }
 
 export default function HomePage() {
@@ -21,6 +23,7 @@ export default function HomePage() {
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [activeTab, setActiveTab] = useState<'standard' | 'double' | 'weekly'>('standard')
   const [isMobile, setIsMobile] = useState(false)
+  const [discountPercent, setDiscountPercent] = useState(0)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -54,8 +57,12 @@ export default function HomePage() {
       fetch('/api/packages?landing=true', { cache: 'no-store' })
         .then(r => r.json())
         .then(data => {
-          if (Array.isArray(data)) setPackages(data)
-          else setPackages([])
+          if (data.packages) {
+            setPackages(data.packages)
+            setDiscountPercent(data.landingPageDiscountPercent || 0)
+          } else if (Array.isArray(data)) {
+            setPackages(data)
+          }
         })
         .catch(() => setPackages([]))
         .finally(() => setLoadingPackages(false))
@@ -105,8 +112,34 @@ export default function HomePage() {
           <h1 style={{ color: '#ffffff', fontFamily: 'Orbitron', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', lineHeight: '1.1', fontSize: isMobile ? '28px' : '48px' }}>
             MLBB Diamonds at<br />Wholesale Rates
           </h1>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '8px',
+            color: '#ffd700', 
+            fontFamily: 'Orbitron', 
+            fontSize: '14px', 
+            fontWeight: '900', 
+            marginTop: '16px', 
+            textTransform: 'uppercase', 
+            letterSpacing: '2px',
+            position: 'relative'
+          }}>
+            <span>Exclusive Tier Pricing Active</span>
+            <div className="group relative">
+              <Info size={16} className="text-[#ffd700]/50 hover:text-[#ffd700] cursor-help transition-colors" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-[#0d1120] border border-[#ffd700]/20 rounded-xl text-[10px] text-gray-300 normal-case tracking-normal font-inter leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-2xl z-50 pointer-events-none">
+                <div className="text-[#ffd700] font-bold mb-1 uppercase tracking-widest">Promotion Terms</div>
+                Tiered discounts (Basic/Premium) are applicable only to the first 3 successfully completed orders per account.
+              </div>
+            </div>
+          </div>
           <p style={{ color: '#94a3b8', fontFamily: 'Inter', maxWidth: '600px', margin: '24px auto 0', lineHeight: '1.6', fontSize: isMobile ? '14px' : '16px' }}>
             Verified resellers get access to our lowest prices. Apply via WhatsApp to get started.
+            <span style={{ display: 'block', marginTop: '8px', fontSize: '10px', color: '#334155', userSelect: 'none' }}>
+              Tip: Please check our ToS on the discounts.
+            </span>
           </p>
           <div style={{ paddingTop: '40px' }}>
             <a 
@@ -147,9 +180,9 @@ export default function HomePage() {
         {/* Tabs */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
           {[
-            { id: 'standard', label: 'Diamond' },
+            { id: 'standard', label: 'Diamonds' },
             { id: 'double', label: 'Double' },
-            { id: 'weekly', label: 'Weekly' }
+            { id: 'weekly', label: 'Passes' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -179,9 +212,13 @@ export default function HomePage() {
               <div key={i} style={{ background: '#0d1120', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', height: '96px' }} />
             ))}
           </div>
-        ) : filteredPackages.length === 0 ? (
+        ) : packages.length === 0 ? (
           <div className="text-center py-20 text-[#475569] font-medium italic">
-            Prices temporarily unavailable
+            Packages temporarily unavailable
+          </div>
+        ) : filteredPackages.length === 0 ? (
+           <div className="text-center py-20 text-[#475569] font-medium italic">
+            No items in this category
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
@@ -194,12 +231,30 @@ export default function HomePage() {
                   borderRadius: '16px',
                   padding: '24px',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  gap: '12px',
                 }}
               >
                 <div style={{ color: '#ffffff', fontFamily: 'Inter', fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>{pkg.name}</div>
-                <div style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '20px', fontWeight: '900' }}>₹{pkg.resellerPrice}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {pkg.basicPrice !== undefined ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#64748b', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Basic</span>
+                      <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '16px', fontWeight: '900' }}>₹{pkg.basicPrice}</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#64748b', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Price</span>
+                      <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '16px', fontWeight: '900' }}>₹{pkg.resellerPrice}</span>
+                    </div>
+                  )}
+                  {pkg.premiumPrice !== undefined && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '4px' }}>
+                      <span style={{ color: '#00c3ff', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Premium</span>
+                      <span style={{ color: '#ffd700', fontFamily: 'Orbitron', fontSize: '16px', fontWeight: '900' }}>₹{pkg.premiumPrice}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

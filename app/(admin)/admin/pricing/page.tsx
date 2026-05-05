@@ -13,7 +13,8 @@ export default function AdminPricingPage() {
     inrPaid: 19000,
     markupPercent: 1.1
   })
-  const [landingDiscount, setLandingDiscount] = useState(0)
+  const [basicDiscount, setBasicDiscount] = useState(0)
+  const [premiumDiscount, setPremiumDiscount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingLanding, setSavingLanding] = useState(false)
@@ -35,11 +36,12 @@ export default function AdminPricingPage() {
         })
       }
 
-      // Fetch landing page discount
+      // Fetch pricing config (basic, premium)
       const lpRes = await fetch('/api/admin/pricing')
       const lpData = await lpRes.json()
-      if (lpData && typeof lpData.landingPageDiscountPercent === 'number') {
-        setLandingDiscount(lpData.landingPageDiscountPercent)
+      if (lpData) {
+        if (typeof lpData.basicDiscountPercent === 'number') setBasicDiscount(lpData.basicDiscountPercent)
+        if (typeof lpData.premiumDiscountPercent === 'number') setPremiumDiscount(lpData.premiumDiscountPercent)
       }
     } catch (err) {
       toast.error("Failed to load configuration")
@@ -80,17 +82,20 @@ export default function AdminPricingPage() {
       const res = await fetch('/api/admin/pricing', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ landingPageDiscountPercent: landingDiscount })
+        body: JSON.stringify({ 
+          basicDiscountPercent: basicDiscount,
+          premiumDiscountPercent: premiumDiscount
+        })
       })
       if (res.ok) {
-        toast.success("Display setting saved")
+        toast.success("Display settings saved")
         fetchConfig()
       } else {
         const data = await res.json()
-        toast.error(data.error || "Failed to save display setting")
+        toast.error(data.error || "Failed to save display settings")
       }
     } catch (err) {
-      toast.error("Error saving display setting")
+      toast.error("Error saving display settings")
     } finally {
       setSavingLanding(false)
     }
@@ -172,36 +177,48 @@ export default function AdminPricingPage() {
         <Card className="bg-[#0d1120] border-gold/10">
           <CardHeader>
             <CardTitle className="text-[18px] font-orbitron text-white uppercase tracking-tighter">
-              Landing Page Display Prices
+              Promotional Pricing Settings
             </CardTitle>
             <p className="text-[13px] font-inter text-[#64748b] mt-1">
-              Reduce displayed prices on the public homepage to attract visitors. This does not affect actual reseller prices, navbar prices, or topup page prices.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            Configure promotional discounts. Tier discounts apply to the first 3 orders of a user.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-[14px] font-inter text-[#64748b]">Display Price Reduction %</label>
+              <label className="text-[14px] font-inter text-[#64748b]">Basic Tier (3 Orders) %</label>
               <Input 
                 type="number" 
                 min={0}
                 max={50}
                 step={0.1}
                 placeholder="0"
-                value={landingDiscount} 
-                onChange={e => setLandingDiscount(parseFloat(e.target.value) || 0)}
-                className="bg-[#0d1120] border-gold/10 text-white w-[120px] h-[40px] px-[14px] py-[10px] rounded-[8px] font-inter focus:ring-gold/20"
+                value={basicDiscount} 
+                onChange={e => setBasicDiscount(parseFloat(e.target.value) || 0)}
+                className="bg-[#0d1120] border-gold/10 text-white w-full h-[40px] px-[14px] py-[10px] rounded-[8px] font-inter focus:ring-gold/20"
               />
-              <p className="text-[12px] font-inter text-[#475569]">
-                Example: entering 5 will show ₹190 instead of ₹200 on the homepage.
-              </p>
             </div>
+            <div className="space-y-2">
+              <label className="text-[14px] font-inter text-[#64748b]">Premium Tier (3 Orders) %</label>
+              <Input 
+                type="number" 
+                min={0}
+                max={50}
+                step={0.1}
+                placeholder="0"
+                value={premiumDiscount} 
+                onChange={e => setPremiumDiscount(parseFloat(e.target.value) || 0)}
+                className="bg-[#0d1120] border-gold/10 text-white w-full h-[40px] px-[14px] py-[10px] rounded-[8px] font-inter focus:ring-gold/20"
+              />
+            </div>
+          </div>
 
             <Button 
               onClick={handleSaveLanding} 
               className="bg-[#ffd700] text-[#050810] font-orbitron font-bold rounded-[8px] px-[20px] py-[10px] hover:bg-[#ffd700]/90 h-auto"
               disabled={savingLanding}
             >
-              {savingLanding ? <Loader2 size={16} className="animate-spin mr-2" /> : "Save Display Setting"}
+              {savingLanding ? <Loader2 size={16} className="animate-spin mr-2" /> : "Save Promotional Settings"}
             </Button>
           </CardContent>
         </Card>

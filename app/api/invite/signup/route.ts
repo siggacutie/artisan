@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
           name: username.trim(),
           isReseller: true,
           role: 'RESELLER',
+          tier: invite.tier || 'BASIC',
           membershipMonths: membershipMonths,
           membershipExpiresAt: membershipExpiresAt,
           emailVerified: false,

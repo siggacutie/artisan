@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const config = await prisma.pricingConfig.findFirst()
-    return NextResponse.json(config || { landingPageDiscountPercent: 0 })
+    return NextResponse.json(config || { basicDiscountPercent: 0, premiumDiscountPercent: 0 })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch pricing config' }, { status: 500 })
   }
@@ -24,8 +24,11 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json()
     const updateData: any = {}
 
-    if (typeof body.landingPageDiscountPercent === 'number') {
-      updateData.landingPageDiscountPercent = Math.min(50, Math.max(0, body.landingPageDiscountPercent))
+    if (typeof body.basicDiscountPercent === 'number') {
+      updateData.basicDiscountPercent = Math.min(50, Math.max(0, body.basicDiscountPercent))
+    }
+    if (typeof body.premiumDiscountPercent === 'number') {
+      updateData.premiumDiscountPercent = Math.min(50, Math.max(0, body.premiumDiscountPercent))
     }
 
     const config = await prisma.pricingConfig.findFirst()

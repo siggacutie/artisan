@@ -22,14 +22,20 @@ export async function POST(req: NextRequest) {
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 
   if (success) {
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        orderStatus: 'COMPLETED',
-        completedAt: new Date(),
-        notes: `${order.notes ? order.notes + ' | ' : ''}Delivered to ${playerName ?? 'unknown'}`,
-      },
-    })
+    await prisma.$transaction([
+      prisma.order.update({
+        where: { id: orderId },
+        data: {
+          orderStatus: 'COMPLETED',
+          completedAt: new Date(),
+          notes: `${order.notes ? order.notes + ' | ' : ''}Delivered to ${playerName ?? 'unknown'}`,
+        },
+      }),
+      prisma.user.update({
+        where: { id: order.userId },
+        data: { ordersCount: { increment: 1 } }
+      })
+    ])
 
     await sendDiscord('order', {
       title: 'Order Delivered',

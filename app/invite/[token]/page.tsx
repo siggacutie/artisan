@@ -14,6 +14,7 @@ export default function InvitePage() {
   const [inviteValid, setInviteValid] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [membershipMonths, setMembershipMonths] = useState(1)
+  const [tier, setTier] = useState('BASIC')
   const [requireEmail, setRequireEmail] = useState(true)
 
   const [username, setUsername] = useState('')
@@ -37,6 +38,7 @@ export default function InvitePage() {
         if (data.valid) {
           setInviteValid(true)
           setMembershipMonths(data.membershipMonths ?? 1)
+          setTier(data.tier ?? 'BASIC')
           setRequireEmail(data.requireEmail ?? true)
         } else {
           setInviteError(data.error || 'Invalid or expired invite link')
@@ -244,7 +246,7 @@ export default function InvitePage() {
             }}>
               <CheckCircle size={16} color="#22c55e" />
               <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                Valid invite — grants <strong style={{ color: '#ffd700' }}>{membershipMonths} month{membershipMonths > 1 ? 's' : ''}</strong> of access
+                Valid invite — grants <strong style={{ color: '#ffd700' }}>{membershipMonths} month{membershipMonths > 1 ? 's' : ''}</strong> of <strong style={{ color: tier === 'PREMIUM' ? '#ffd700' : '#00c3ff' }}>{tier}</strong> access
               </span>
             </div>
 

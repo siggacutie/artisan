@@ -1,64 +1,59 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { generatePackageLabel } from '@/lib/pricing'
+import { getPackagesWithPrices } from '@/lib/pricing'
+import { getResellerSession } from '@/lib/resellerAuth'
 
 export const dynamic = 'force-dynamic'
-
-const SMILECOIN_COSTS: Record<string, number> = {
-  'mlbb-78':     61.5,
-  'mlbb-156':    122.0,
-  'mlbb-234':    176.7,
-  'mlbb-625':    480.0,
-  'mlbb-1860':   1453.0,
-  'mlbb-3099':   2424.0,
-  'mlbb-4649':   3660.0,
-  'mlbb-d50':    39.0,
-  'mlbb-d150':   116.9,
-  'mlbb-d250':   187.5,
-  'mlbb-d500':   385.0,
-  'mlbb-weekly': 76.0,
-  'mlbb-elite':  39.0,
-  'mlbb-epic':   196.5,
-}
 
 export async function GET(req: Request) {
   try {
     const isLanding = new URL(req.url).searchParams.get('landing') === 'true'
+    let user = null
+    try {
+      user = await getResellerSession()
+    } catch (e) {
+      console.error("Session fetch failed", e)
+    }
 
-    const pricingConfig = await prisma.pricingConfig.findFirst()
-    const landingDiscount = isLanding ? (pricingConfig?.landingPageDiscountPercent ?? 0) : 0
+    // Pass user info to getPackagesWithPrices for tiered discount calculation
+    const packages = await getPackagesWithPrices(undefined, undefined, user ? {
+      id: user.id,
+      tier: (user as any).tier || 'BASIC',
+      ordersCount: (user as any).ordersCount || 0
+    } : undefined)
 
-    const packages = await prisma.diamondPackage.findMany({
-      where: { isVisible: true },
-      orderBy: { sortOrder: 'asc' },
-      include: { game: { select: { slug: true } } },
-    })
+    let basicDiscount = 0
+    let premiumDiscount = 0
+
+    try {
+      const pricingConfig = await prisma.pricingConfig.findFirst()
+      basicDiscount = pricingConfig?.basicDiscountPercent ?? 0
+      premiumDiscount = pricingConfig?.premiumDiscountPercent ?? 0
+    } catch (e) {
+      console.error("Pricing config fetch failed", e)
+    }
 
     const result = packages.map((pkg) => {
-      const basePrice = pkg.basePriceInr
-      
-      const displayPrice = isLanding && landingDiscount > 0
-        ? Math.ceil(basePrice * (1 - landingDiscount / 100))
-        : (pkg.displayPrice || basePrice)
-
-      const displayName = generatePackageLabel(pkg)
+      // If landing page, use landingPrice. If logged user, use resellerPrice (which includes tiered discount)
+      const displayPrice = isLanding ? pkg.landingPrice : pkg.resellerPrice
 
       return {
         id: pkg.id,
-        gameSlug: pkg.game.slug,
-        name: displayName,
+        name: pkg.label,
         diamondAmount: pkg.diamondAmount,
         bonusDiamonds: pkg.bonusDiamonds,
-        bonusLabel: pkg.bonusLabel,
         section: pkg.section,
-        sortOrder: pkg.sortOrder,
-        supplierProductId: pkg.supplierProductId,
-        resellerPrice: basePrice,
+        resellerPrice: displayPrice, // We keep the key as resellerPrice for frontend compatibility
         displayPrice: displayPrice,
+        basicPrice: isLanding ? Math.floor(pkg.basePriceInr * (1 - basicDiscount / 100)) : undefined,
+        premiumPrice: isLanding ? Math.floor(pkg.basePriceInr * (1 - premiumDiscount / 100)) : undefined,
       }
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json({
+      packages: result,
+      landingPageDiscountPercent: 0 // Field deprecated
+    })
   } catch (error) {
     console.error('[/api/packages] Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

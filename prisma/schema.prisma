@@ -39,6 +39,8 @@ model User {
   passwordHash         String?
   name                 String?
   role                 Role                @default(RESELLER)
+  tier                 String              @default("BASIC")
+  ordersCount          Int                 @default(0)
   avatarUrl            String?
   walletBalance        Float               @default(0)
   currencyPreference   String              @default("INR")
@@ -58,6 +60,8 @@ model User {
   isReseller           Boolean             @default(false)
   autoRenew            Boolean             @default(false)
   autoRenewMonths      Int                 @default(1)
+  hasSeenOldUserPopup  Boolean             @default(false)
+  tosAcceptedAt        DateTime?
   otpCodes             OtpCode[]
   resellerSession      ResellerSession?
   accountsPurchased    AccountListing[]    @relation("SoldToUser")
@@ -161,6 +165,7 @@ model InviteLink {
   expiresAt       DateTime
   isUsed          Boolean   @default(false)
   membershipMonths Int      @default(1)
+  tier            String    @default("BASIC")
   requireEmail    Boolean   @default(true)
   createdAt       DateTime  @default(now())
 }
@@ -309,6 +314,8 @@ model PricingConfig {
   id                    String   @id @default(cuid())
   userMarkupPercent     Float    @default(3.5)
   resellerMarkupPercent Float    @default(1.5)
+  basicDiscountPercent  Float    @default(0)
+  premiumDiscountPercent Float   @default(0)
   refreshIntervalHours  Float    @default(2.0)
   inviteLinkExpiryHours Float    @default(2.0)
   landingPageDiscountPercent Float @default(0)

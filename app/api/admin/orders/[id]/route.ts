@@ -34,6 +34,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
       })
 
+      if (orderStatus === 'COMPLETED' && currentOrder.orderStatus !== 'COMPLETED') {
+        await tx.user.update({
+          where: { id: currentOrder.userId },
+          data: { ordersCount: { increment: 1 } }
+        })
+      }
+
       if (orderStatus === 'REFUNDED' && currentOrder.orderStatus !== 'REFUNDED') {
         await tx.user.update({
           where: { id: currentOrder.userId },

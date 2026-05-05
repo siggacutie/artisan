@@ -28,6 +28,8 @@ export async function getResellerSession() {
             role: true,
             walletBalance: true,
             membershipExpiresAt: true,
+            tier: true,
+            ordersCount: true,
             isReseller: true,
             isBanned: true,
             isFrozen: true,
@@ -37,6 +39,9 @@ export async function getResellerSession() {
             autoRenew: true,
             autoRenewMonths: true,
             emailVerified: true,
+            hasSeenOldUserPopup: true,
+            tosAcceptedAt: true,
+            createdAt: true,
           }
         }
       },

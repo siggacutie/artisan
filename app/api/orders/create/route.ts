@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Get current user details from DB to check restrictions and balance
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, username: true, role: true, isBanned: true, walletBalance: true },
+      select: { id: true, username: true, role: true, isBanned: true, walletBalance: true, tier: true, ordersCount: true },
     })
 
     if (!dbUser || dbUser.isBanned) {
@@ -57,7 +57,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Price Validation
-    const packagesWithPrices = await getPackagesWithPrices()
+    const packagesWithPrices = await getPackagesWithPrices(undefined, undefined, dbUser ? {
+      id: dbUser.id,
+      tier: dbUser.tier,
+      ordersCount: dbUser.ordersCount
+    } : undefined)
     const pkg = packagesWithPrices.find(p => p.id === packageId)
 
     if (!pkg) {

@@ -5,10 +5,10 @@ import {
   Search, 
   Zap, 
   Shield, 
-  Gamepad2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, Variants } from "framer-motion";
+import DiscountTracker from "@/components/shared/DiscountTracker";
 
 const pageVariants: Variants = {
   initial: { opacity: 0, y: 12 },
@@ -27,10 +27,18 @@ const cardVariants: Variants = {
 
 export default function GamesPage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [hovered, setHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/reseller/auth/me')
+      .then(r => r.json())
+      .then(data => setUser(data))
+      .catch(() => setUser(null))
+  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -41,13 +49,12 @@ export default function GamesPage() {
 
   return (
     <div style={{
-      maxWidth: '1200px',
-      margin: '0 auto',
-      padding: isMobile ? '16px' : '32px 24px',
+      maxWidth: '100%',
+      overflowX: 'hidden',
+      padding: isMobile ? '72px 16px 80px' : '32px 24px',
       minHeight: '100vh',
       backgroundColor: '#050810',
       boxSizing: 'border-box',
-      overflowX: 'hidden'
     }}>
       <motion.div
         variants={pageVariants}
@@ -82,6 +89,8 @@ export default function GamesPage() {
             <p style={{ color: '#94a3b8', fontFamily: 'Inter', fontSize: isMobile ? '13px' : '14px', marginTop: '8px' }}>
               Top up credits for your favorite games instantly.
             </p>
+
+            {user && <div className="mt-8"><DiscountTracker ordersCount={user.ordersCount || 0} /></div>}
             
             {/* Stats Row */}
             <div style={{

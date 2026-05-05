@@ -102,3 +102,9 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/wallet_management_v1/](./tracks/wallet_management_v1/plan.md)*
 - [x] **Track: Fix Missing Switch Component in Admin Settings**
   *Link: [./tracks/fix_prompt3_missing_switch_component_20260501/](./tracks/fix_prompt3_missing_switch_component_20260501/)*
+- [ ] **Track: Old User Discount Popup and Tracker**
+  *Link: [./tracks/old_user_discount_popup_and_tracker_20260505/](./tracks/old_user_discount_popup_and_tracker_20260505/plan.md)*
+- [x] **Track: Invite Membership Visibility**
+  *Link: [./tracks/invite_membership_visibility_20260505/](./tracks/invite_membership_visibility_20260505/plan.md)*
+- [x] **Track: Prompt 3 Mobile UI Fixes**
+  *Link: [./tracks/prompt3_mobile_ui_fixes_20260505/](./tracks/prompt3_mobile_ui_fixes_20260505/plan.md)*

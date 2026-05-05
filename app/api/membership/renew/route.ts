@@ -4,11 +4,19 @@ import { validateOrigin } from '@/lib/validateOrigin'
 import { prisma } from '@/lib/prisma'
 import { sendDiscord } from '@/lib/discord'
 
-const MEMBERSHIP_PRICES: Record<number, number> = {
-  1: 250,
-  3: 699,
-  6: 1299,
-  12: 2699,
+const MEMBERSHIP_PLANS: Record<string, Record<number, number>> = {
+  BASIC: {
+    1: 149,
+    3: 399,
+    6: 749,
+    12: 1299,
+  },
+  PREMIUM: {
+    1: 240,
+    3: 649,
+    6: 1199,
+    12: 2099,
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -17,10 +25,12 @@ export async function POST(req: NextRequest) {
   const session = await getResellerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { months } = await req.json()
+  const { months, tier } = await req.json()
 
-  const costInr = MEMBERSHIP_PRICES[Number(months)]
-  if (!costInr) return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 })
+  const selectedTier = tier || 'BASIC'
+  const costInr = MEMBERSHIP_PLANS[selectedTier]?.[Number(months)]
+  
+  if (!costInr) return NextResponse.json({ error: 'Invalid plan or tier selected' }, { status: 400 })
 
   const user = await prisma.user.findUnique({ where: { id: session.id } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -58,6 +68,7 @@ export async function POST(req: NextRequest) {
           walletBalance: { decrement: costInr },
           membershipExpiresAt: calculatedExpiry,
           membershipMonths: Number(months),
+          tier: selectedTier,
           isReseller: true,
           isFrozen: false,
         },
@@ -72,7 +83,7 @@ export async function POST(req: NextRequest) {
           method: 'WALLET',
           referenceId: `membership_${session.id}_${Date.now()}`,
           status: 'COMPLETED',
-          description: `Membership renewal — ${months} month${Number(months) > 1 ? 's' : ''}`,
+          description: `Membership renewal — ${selectedTier} ${months} month${Number(months) > 1 ? 's' : ''}`,
         },
       })
 
@@ -93,6 +104,7 @@ export async function POST(req: NextRequest) {
       color: 0x22c55e,
       fields: [
         { name: 'User', value: finalUser.username || finalUser.id, inline: true },
+        { name: 'Tier', value: selectedTier, inline: true },
         { name: 'Plan', value: `${months} Months`, inline: true },
         { name: 'Cost', value: `${costInr} coins`, inline: true },
         { name: 'New Expiry', value: newExpiry.toLocaleDateString(), inline: true },
