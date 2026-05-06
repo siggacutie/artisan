@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      return { newExpiry: calculatedExpiry, finalUser: updated }
+      return { newExpiry: calculatedExpiry, finalUser: updated, startsAt: calculatedStartsAt }
     })
 
     await sendDiscord('signup', {

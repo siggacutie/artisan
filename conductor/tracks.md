@@ -112,3 +112,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/pricing_vulnerability_audit_20260505/](./tracks/pricing_vulnerability_audit_20260505/plan.md)*
 - [x] **Track: Membership Queue & Pricing Update**
   *Link: [./tracks/membership_queue_20260505/](./tracks/membership_queue_20260505/plan.md)*
+- [x] **Track: Fix Membership Renewal TypeScript Error**
+  *Link: [./tracks/fix_membership_renew_ts_error/](./tracks/fix_membership_renew_ts_error/plan.md)*
